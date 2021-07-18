@@ -1,0 +1,12 @@
+/home/michael/Projects/C#/mathsharp/MathSharp/bin/Debug/net5.0/MathSharp.deps.json
+/home/michael/Projects/C#/mathsharp/MathSharp/bin/Debug/net5.0/MathSharp.dll
+/home/michael/Projects/C#/mathsharp/MathSharp/bin/Debug/net5.0/ref/MathSharp.dll
+/home/michael/Projects/C#/mathsharp/MathSharp/bin/Debug/net5.0/MathSharp.pdb
+/home/michael/Projects/C#/mathsharp/MathSharp/obj/Debug/net5.0/MathSharp.csprojAssemblyReference.cache
+/home/michael/Projects/C#/mathsharp/MathSharp/obj/Debug/net5.0/MathSharp.GeneratedMSBuildEditorConfig.editorconfig
+/home/michael/Projects/C#/mathsharp/MathSharp/obj/Debug/net5.0/MathSharp.AssemblyInfoInputs.cache
+/home/michael/Projects/C#/mathsharp/MathSharp/obj/Debug/net5.0/MathSharp.AssemblyInfo.cs
+/home/michael/Projects/C#/mathsharp/MathSharp/obj/Debug/net5.0/MathSharp.csproj.CoreCompileInputs.cache
+/home/michael/Projects/C#/mathsharp/MathSharp/obj/Debug/net5.0/MathSharp.dll
+/home/michael/Projects/C#/mathsharp/MathSharp/obj/Debug/net5.0/ref/MathSharp.dll
+/home/michael/Projects/C#/mathsharp/MathSharp/obj/Debug/net5.0/MathSharp.pdb

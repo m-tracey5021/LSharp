@@ -6,9 +6,21 @@ namespace MathSharp.Symbols
     public class Variable : Symbol
     {
         public char value { get; set; }
+        public Variable(){}
+        public Variable(bool sign, char value){ this.symbol = value; this.sign = sign; this.value = value; }
         public override void dispatch(Visitor visitor)
         {
-            throw new NotImplementedException();
+            visitor.visit(this);
+        }
+        public override void sanitise()
+        {
+            foreach (Symbol child in children){
+                child.sanitise();
+            }
+        }
+        public override Nullable<int> getValue()
+        {
+            return null;
         }
         public override Symbol evaluate()
         {

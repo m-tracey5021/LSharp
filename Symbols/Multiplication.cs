@@ -7,7 +7,26 @@ namespace MathSharp.Symbols
     {
         public override void dispatch(Visitor visitor)
         {
-            throw new NotImplementedException();
+            visitor.visit(this);
+        }
+        public override void sanitise()
+        {
+            SanitiseMultiplication sanitise = new SanitiseMultiplication(this);
+            for (int i = 0; i < children.Count; i ++){
+                children[i].sanitise();
+                children[i].dispatch(sanitise);
+                if (sanitise.childRemoved){
+                    i --;
+                }
+            }
+            if (sanitise.coefficient > 1){
+                Symbol coefficient = new Constant(true, sanitise.coefficient);
+                children.Insert(0, coefficient);
+            }
+        }
+        public override Nullable<int> getValue()
+        {
+            return null;
         }
         public override Symbol evaluate()
         {

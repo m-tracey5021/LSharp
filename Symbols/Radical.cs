@@ -1,7 +1,7 @@
 using System;
-using MathSharp.Visitors;
+using LSharp.Visitors;
 
-namespace MathSharp.Symbols
+namespace LSharp.Symbols
 {
     public class Radical : Symbol
     {

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using MathSharp.Visitors;
+using LSharp.Visitors;
 
 
-namespace MathSharp.Symbols
+namespace LSharp.Symbols
 {
     public abstract class Symbol
     {

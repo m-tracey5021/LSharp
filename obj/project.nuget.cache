@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "gT201aGOm78SyTyE0MVoUxgnhJVuRwj8M2ezB2GFjgX1BuuiPfRfl7yITATIDc98ZrWkSHCgYn35BNrxLqaq4Q==",
+  "dgSpecHash": "fVef7mMvam65PqxS1rvgOxYKmdJhsEk1CUoOgRZ4OmZ53OSECztNVtICxrwenvxpB9XFgwjjcKcFjNaviyyneg==",
   "success": true,
-  "projectFilePath": "/home/michael/Projects/C#/mathsharp/MathSharp/MathSharp.csproj",
+  "projectFilePath": "/home/michael/Projects/C#/lsharp/LSharp/LSharp.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

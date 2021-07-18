@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/michael/Projects/C#/mathsharp/MathSharp/MathSharp.csproj",
-      "projectName": "MathSharp",
-      "projectPath": "/home/michael/Projects/C#/mathsharp/MathSharp/MathSharp.csproj",
+      "projectUniqueName": "/home/michael/Projects/C#/lsharp/LSharp/LSharp.csproj",
+      "projectName": "LSharp",
+      "projectPath": "/home/michael/Projects/C#/lsharp/LSharp/LSharp.csproj",
       "packagesPath": "/home/michael/.nuget/packages/",
-      "outputPath": "/home/michael/Projects/C#/mathsharp/MathSharp/obj/",
+      "outputPath": "/home/michael/Projects/C#/lsharp/LSharp/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/michael/.nuget/NuGet/NuGet.Config"

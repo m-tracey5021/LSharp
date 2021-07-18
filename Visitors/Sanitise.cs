@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using MathSharp.Symbols;
+using LSharp.Symbols;
 
-namespace MathSharp.Visitors
+namespace LSharp.Visitors
 {
     public class SanitiseMultiplication : Visitor
     {

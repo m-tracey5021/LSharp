@@ -1,0 +1,12 @@
+/home/michael/Projects/C#/lsharp/LSharp/bin/Debug/net5.0/LSharp.deps.json
+/home/michael/Projects/C#/lsharp/LSharp/bin/Debug/net5.0/LSharp.dll
+/home/michael/Projects/C#/lsharp/LSharp/bin/Debug/net5.0/ref/LSharp.dll
+/home/michael/Projects/C#/lsharp/LSharp/bin/Debug/net5.0/LSharp.pdb
+/home/michael/Projects/C#/lsharp/LSharp/obj/Debug/net5.0/LSharp.csprojAssemblyReference.cache
+/home/michael/Projects/C#/lsharp/LSharp/obj/Debug/net5.0/LSharp.GeneratedMSBuildEditorConfig.editorconfig
+/home/michael/Projects/C#/lsharp/LSharp/obj/Debug/net5.0/LSharp.AssemblyInfoInputs.cache
+/home/michael/Projects/C#/lsharp/LSharp/obj/Debug/net5.0/LSharp.AssemblyInfo.cs
+/home/michael/Projects/C#/lsharp/LSharp/obj/Debug/net5.0/LSharp.csproj.CoreCompileInputs.cache
+/home/michael/Projects/C#/lsharp/LSharp/obj/Debug/net5.0/LSharp.dll
+/home/michael/Projects/C#/lsharp/LSharp/obj/Debug/net5.0/ref/LSharp.dll
+/home/michael/Projects/C#/lsharp/LSharp/obj/Debug/net5.0/LSharp.pdb

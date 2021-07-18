@@ -1,7 +1,7 @@
 using System;
-using MathSharp.Symbols;
+using LSharp.Symbols;
 
-namespace MathSharp.Visitors
+namespace LSharp.Visitors
 {
     public abstract class Visitor
     {

@@ -1,34 +1,39 @@
 using System;
+using System.Collections.Generic;
 using LSharp.Visitors;
 
 namespace LSharp.Symbols
 {
     public class Radical : Symbol
     {
-        public override void dispatch(Visitor visitor)
+        public override void Dispatch(Visitor visitor)
         {
-            visitor.visit(this);
+            visitor.Visit(this);
         }
-        public override void sanitise()
+        public override SymbolFlat Flatten()
+        {
+            return new SymbolFlat(SymbolType.Radical, symbol);
+        }
+        public override void Sanitise()
         {
             foreach (Symbol child in children){
-                child.sanitise();
+                child.Sanitise();
             }
         }
-        public override Nullable<int> getValue()
+        public override Nullable<int> GetValue()
         {
             return null;
         }
-        public override Symbol evaluate()
+        public override Symbol Evaluate()
         {
             Symbol result = children[0];
 
             for (int i = 0; i < children.Count; i ++){
 
-                Symbol lhs = result.evaluate();
-                Symbol rhs = children[i + 1].evaluate();
+                Symbol lhs = result.Evaluate();
+                Symbol rhs = children[i + 1].Evaluate();
 
-                result = lhs.floor(rhs);
+                result = lhs.Floor(rhs);
 
                 if (result == null){
                     result = children[i + 1];
@@ -36,23 +41,23 @@ namespace LSharp.Symbols
             }
             return result;
         }
-        public override Symbol sum(Symbol other)
+        public override Symbol Sum(Symbol other)
         {
             throw new NotImplementedException();
         }
-        public override Symbol multiply(Symbol other)
+        public override Symbol Multiply(Symbol other)
         {
             throw new NotImplementedException();
         }
-        public override Symbol divide(Symbol other)
+        public override Symbol Divide(Symbol other)
         {
             throw new NotImplementedException();
         }
-        public override Symbol raise(Symbol other)
+        public override Symbol Raise(Symbol other)
         {
             throw new NotImplementedException();
         }
-        public override Symbol floor(Symbol other)
+        public override Symbol Floor(Symbol other)
         {
             throw new NotImplementedException();
         }

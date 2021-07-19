@@ -7,47 +7,47 @@ namespace LSharp.Visitors
     {
         public Symbol child { get; set; }
         public Append(Symbol child){ this.child = child; }
-        public override void visit(Summation parent){ child.dispatch(new AppendToSumOp(parent)); }
-        public override void visit(Multiplication parent){ child.dispatch(new AppendToMulOp(parent)); }
-        public override void visit(Division parent){ AppendUtility.append(parent, child); }
-        public override void visit(Exponent parent){ AppendUtility.append(parent, child); }
-        public override void visit(Radical parent){ AppendUtility.append(parent, child); }
-        public override void visit(Variable parent){ AppendUtility.append(parent, child); }
-        public override void visit(Constant parent){ AppendUtility.append(parent, child); }
+        public override void Visit(Summation parent){ child.Dispatch(new AppendToSumOp(parent)); }
+        public override void Visit(Multiplication parent){ child.Dispatch(new AppendToMulOp(parent)); }
+        public override void Visit(Division parent){ AppendUtility.Append(parent, child); }
+        public override void Visit(Exponent parent){ AppendUtility.Append(parent, child); }
+        public override void Visit(Radical parent){ AppendUtility.Append(parent, child); }
+        public override void Visit(Variable parent){ AppendUtility.Append(parent, child); }
+        public override void Visit(Constant parent){ AppendUtility.Append(parent, child); }
 
     }
     public class AppendToSumOp : Visitor
     {
         public Symbol parent { get; set; }
         public AppendToSumOp(Symbol parent){ this.parent = parent; }
-        public override void visit(Summation child){ AppendUtility.appendEach(parent, child); }
-        public override void visit(Multiplication child){ AppendUtility.append(parent, child); }
-        public override void visit(Division child){ AppendUtility.append(parent, child); }
-        public override void visit(Exponent child){ AppendUtility.append(parent, child); }
-        public override void visit(Radical child){ AppendUtility.append(parent, child); }
-        public override void visit(Variable child){ AppendUtility.append(parent, child); }
-        public override void visit(Constant child){ AppendUtility.append(parent, child); }
+        public override void Visit(Summation child){ AppendUtility.AppendEach(parent, child); }
+        public override void Visit(Multiplication child){ AppendUtility.Append(parent, child); }
+        public override void Visit(Division child){ AppendUtility.Append(parent, child); }
+        public override void Visit(Exponent child){ AppendUtility.Append(parent, child); }
+        public override void Visit(Radical child){ AppendUtility.Append(parent, child); }
+        public override void Visit(Variable child){ AppendUtility.Append(parent, child); }
+        public override void Visit(Constant child){ AppendUtility.Append(parent, child); }
 
     }
     public class AppendToMulOp : Visitor
     {
         public Symbol parent { get; set; }
         public AppendToMulOp(Symbol parent){ this.parent = parent; }
-        public override void visit(Summation child){ AppendUtility.append(parent, child); }
-        public override void visit(Multiplication child){ AppendUtility.appendEach(parent, child); }
-        public override void visit(Division child){ AppendUtility.append(parent, child); }
-        public override void visit(Exponent child){ AppendUtility.append(parent, child); }
-        public override void visit(Radical child){ AppendUtility.append(parent, child); }
-        public override void visit(Variable child){ AppendUtility.append(parent, child); }
-        public override void visit(Constant child){ AppendUtility.append(parent, child); }
+        public override void Visit(Summation child){ AppendUtility.Append(parent, child); }
+        public override void Visit(Multiplication child){ AppendUtility.AppendEach(parent, child); }
+        public override void Visit(Division child){ AppendUtility.Append(parent, child); }
+        public override void Visit(Exponent child){ AppendUtility.Append(parent, child); }
+        public override void Visit(Radical child){ AppendUtility.Append(parent, child); }
+        public override void Visit(Variable child){ AppendUtility.Append(parent, child); }
+        public override void Visit(Constant child){ AppendUtility.Append(parent, child); }
 
     }
     public static class AppendUtility 
     {
-        public static void append(Symbol parent, Symbol child){
+        public static void Append(Symbol parent, Symbol child){
             parent.children.Add(child);
         }
-        public static void appendEach(Symbol parent, Symbol child){
+        public static void AppendEach(Symbol parent, Symbol child){
             foreach (Symbol grandchild in child.children){
                 parent.children.Add(grandchild);
             }

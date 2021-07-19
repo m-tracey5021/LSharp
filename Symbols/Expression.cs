@@ -8,28 +8,28 @@ namespace LSharp.Symbols
     {
         Symbol root;
         public Expression(){}
-        public void sanitise(){ root.sanitise(); }
-        public void appendNode(Symbol parent, Symbol child){
+        public void Sanitise(){ root.Sanitise(); }
+        public void AppendNode(Symbol parent, Symbol child){
             parent.children.Add(child);
-            sanitise();
+            Sanitise();
         }
-        public void removeNode(Symbol node){
+        public void RemoveNode(Symbol node){
             List<Symbol> siblings = node.parent.children;
             siblings.Remove(node);
-            sanitise();
+            Sanitise();
         }
-        public void replaceNode(Symbol node, Symbol replacement){
+        public void ReplaceNode(Symbol node, Symbol replacement){
             List<Symbol> siblings = node.parent.children;
             for (int i = 0; i < siblings.Count; i ++){
                 if (siblings[i] == node){
                     siblings.Insert(i, replacement);
                     siblings.RemoveAt(i + 1);
-                    sanitise();
+                    Sanitise();
                     return;
                 }
             }
         }
-        public void insertNode(Symbol node, Symbol replacement){
+        public void InsertNode(Symbol node, Symbol replacement){
 
         }
     }

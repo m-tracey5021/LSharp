@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using LSharp.Visitors;
 
 
@@ -20,15 +21,45 @@ namespace LSharp.Symbols
 
         // methods
 
-        public abstract void dispatch(Visitor visitor);
-        public abstract void sanitise();
-        public abstract Nullable<int> getValue();
-        public abstract Symbol evaluate();
-        public abstract Symbol sum(Symbol other);
-        public abstract Symbol multiply(Symbol other);
-        public abstract Symbol divide(Symbol other);
-        public abstract Symbol raise(Symbol other);
-        public abstract Symbol floor(Symbol other); // rename this
+        public abstract void Dispatch(Visitor visitor);
+        public abstract SymbolFlat Flatten();
+        public abstract void Sanitise();
+        public abstract Nullable<int> GetValue();
+        public virtual List<SymbolFlat> GetStructure()
+        {
+            List<SymbolFlat> flats = new List<SymbolFlat>();
+            GetStructure(flats);
+            return flats;
+        }
+        public virtual void GetStructure(List<SymbolFlat> flats)
+        {
+            flats.Add(Flatten());
+            foreach (Symbol child in children)
+            {
+                child.GetStructure(flats);
+            }
+        }
+        public virtual Structure Identify()
+        {
+            List<SymbolFlat> flats = GetStructure();
+            List<SymbolType> types = flats.Select(x => x.type).ToList();
+
+            if (StructureDefinition.canDistribute.Contains(types))
+            {
+                return Structure.CanDistribute;
+            }
+            else
+            {
+                return Structure.CanApplyER1;
+            }
+        }
+        
+        public abstract Symbol Evaluate();
+        public abstract Symbol Sum(Symbol other);
+        public abstract Symbol Multiply(Symbol other);
+        public abstract Symbol Divide(Symbol other);
+        public abstract Symbol Raise(Symbol other);
+        public abstract Symbol Floor(Symbol other); // rename this
         
     }
 }

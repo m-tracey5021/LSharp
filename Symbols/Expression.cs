@@ -57,7 +57,7 @@ namespace LSharp.Symbols
         {
             int nextChild = childMap[index][path[0]];
 
-            for (int i = 0; i < path.Count - 1; i ++)
+            for (int i = 1; i < path.Count; i ++)
             {
                 nextChild = childMap[nextChild][path[i]];
             }

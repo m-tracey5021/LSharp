@@ -1,74 +1,92 @@
 using System;
 using System.Collections.Generic;
-using LSharp.Visitors;
 
 namespace LSharp.Symbols
 {
     public class Multiplication : Symbol
     {
-        public override void Dispatch(Visitor visitor)
-        {
-            visitor.Visit(this);
-        }
-        public override SymbolFlat Flatten()
-        {
-            return new SymbolFlat(SymbolType.Multiplication, symbol);
-        }
-        public override void Sanitise()
-        {
-            SanitiseMultiplication sanitise = new SanitiseMultiplication(this);
-            for (int i = 0; i < children.Count; i ++){
-                children[i].Sanitise();
-                children[i].Dispatch(sanitise);
-                if (sanitise.childRemoved){
-                    i --;
-                }
-            }
-            if (sanitise.coefficient > 1){
-                Symbol coefficient = new Constant(true, sanitise.coefficient);
-                children.Insert(0, coefficient);
-            }
-        }
-        public override Nullable<int> GetValue()
-        {
-            return null;
-        }
-        public override Symbol Evaluate()
-        {
-            Symbol result = children[0];
-
-            for (int i = 0; i < children.Count; i ++){
-
-                Symbol lhs = result.Evaluate();
-                Symbol rhs = children[i + 1].Evaluate();
-
-                result = lhs.Multiply(rhs);
-
-                if (result == null){
-                    result = children[i + 1];
-                }
-            }
-            return result;
-        }
         public override Symbol Sum(Symbol other)
         {
-            throw new NotImplementedException();
+            return other.Sum(this);
         }
-        public override Symbol Multiply(Symbol other)
+        public override Symbol Sum(Summation other)
         {
             throw new NotImplementedException();
         }
-        public override Symbol Divide(Symbol other)
+        public override Symbol Sum(Multiplication other)
         {
             throw new NotImplementedException();
         }
-        public override Symbol Raise(Symbol other)
+        public override Symbol Sum(Division other)
         {
             throw new NotImplementedException();
         }
-        public override Symbol Floor(Symbol other)
+        public override Symbol Sum(Exponent other)
         {
             throw new NotImplementedException();
+        }
+        public override Symbol Sum(Radical other)
+        {
+            throw new NotImplementedException();
+        }
+        public override Symbol Sum(Variable other)
+        {
+            throw new NotImplementedException();
+        }
+        public override Symbol Sum(Constant other)
+        {
+            throw new NotImplementedException();
+        }
+        public override bool IsEqual(Symbol other){ return other.IsEqual(this); }
+        public override bool IsEqual(Summation other){ return false; }
+        public override bool IsEqual(Multiplication other){ if (this == other){ return true; } else { return false; } }
+        public override bool IsEqual(Division other){ return false; }
+        public override bool IsEqual(Exponent other){ return false; }
+        public override bool IsEqual(Radical other){ return false; }
+        public override bool IsEqual(Variable other){ return false; }
+        public override bool IsEqual(Constant other){ return false; }
+        public override bool CanApplyER1()
+        {
+            int stage = 1;
+
+            List<int> children = GetChildren();
+
+            foreach (int child in children)
+            {
+                expression.GetNode(child).IsER1Constituent(ref stage);
+            }
+            if (stage == 7)
+            {
+                int index = expression.Search(this);
+
+                Symbol ll = expression.GetNode(expression.GetChild(index, new List<int> { 0, 0 }));
+                Symbol rl = expression.GetNode(expression.GetChild(index, new List<int> { 1, 0 }));
+
+                if (ll.IsEqual(rl))
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;    
+            }
+        }
+        public override void IsER1Constituent(ref int stage)
+        {
+            if (stage == 2 || stage == 3 || stage == 5 || stage == 6)
+            {
+                stage ++;
+                return;
+            }
+            else
+            {
+                return;
+            }
         }
     }
 }

@@ -1,65 +1,53 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using LSharp.Visitors;
 
 
 namespace LSharp.Symbols
 {
     public abstract class Symbol
     {
-        public char symbol { get; set; }
         public bool sign { get; set; }
-        public Symbol parent { get; set; }
-        public List<Symbol> children { get; set; }
-        public Expression parentExpression { get; set; }
+        public char symbol { get; set; }
+        public Expression expression { get; set; }
 
         // constructors
 
         public Symbol(){}
-        public Symbol(char value, bool sign){ this.symbol = value; this.sign = sign; }
+        public Symbol(bool sign, char symbol){ this.sign = sign; this.symbol = symbol; }
 
         // methods
 
-        public abstract void Dispatch(Visitor visitor);
-        public abstract SymbolFlat Flatten();
-        public abstract void Sanitise();
-        public abstract Nullable<int> GetValue();
-        public virtual List<SymbolFlat> GetStructure()
+        public virtual int GetParent()
         {
-            List<SymbolFlat> flats = new List<SymbolFlat>();
-            GetStructure(flats);
-            return flats;
+            int index = expression.Search(this);
+            return expression.GetParent(index);
         }
-        public virtual void GetStructure(List<SymbolFlat> flats)
+        public virtual List<int> GetChildren()
         {
-            flats.Add(Flatten());
-            foreach (Symbol child in children)
-            {
-                child.GetStructure(flats);
-            }
+            int index = expression.Search(this);
+            return expression.GetChildren(index);
         }
-        public virtual Structure Identify()
-        {
-            List<SymbolFlat> flats = GetStructure();
-            List<SymbolType> types = flats.Select(x => x.type).ToList();
-
-            if (StructureDefinition.canDistribute.Contains(types))
-            {
-                return Structure.CanDistribute;
-            }
-            else
-            {
-                return Structure.CanApplyER1;
-            }
-        }
-        
-        public abstract Symbol Evaluate();
         public abstract Symbol Sum(Symbol other);
-        public abstract Symbol Multiply(Symbol other);
-        public abstract Symbol Divide(Symbol other);
-        public abstract Symbol Raise(Symbol other);
-        public abstract Symbol Floor(Symbol other); // rename this
+        public abstract Symbol Sum(Summation other);
+        public abstract Symbol Sum(Multiplication other);
+        public abstract Symbol Sum(Division other);
+        public abstract Symbol Sum(Exponent other);
+        public abstract Symbol Sum(Radical other);
+        public abstract Symbol Sum(Variable other);
+        public abstract Symbol Sum(Constant other);
+
+        public abstract bool IsEqual(Symbol other);
+        public abstract bool IsEqual(Summation other);
+        public abstract bool IsEqual(Multiplication other);
+        public abstract bool IsEqual(Division other);
+        public abstract bool IsEqual(Exponent other);
+        public abstract bool IsEqual(Radical other);
+        public abstract bool IsEqual(Variable other);
+        public abstract bool IsEqual(Constant other);
+
+        public abstract bool CanApplyER1();
+        public abstract void IsER1Constituent(ref int stage);
         
     }
 }

@@ -1,65 +1,74 @@
 using System;
 using System.Collections.Generic;
-using LSharp.Visitors;
 
 namespace LSharp.Symbols
 {
     public class Exponent : Symbol
     {
-        public override void Dispatch(Visitor visitor)
-        {
-            visitor.Visit(this);
-        }
-        public override SymbolFlat Flatten()
-        {
-            return new SymbolFlat(SymbolType.Exponent, symbol);
-        }
-        public override void Sanitise()
-        {
-            foreach (Symbol child in children){
-                child.Sanitise();
-            }
-        }
-        public override Nullable<int> GetValue()
-        {
-            return null;
-        }
-        public override Symbol Evaluate()
-        {
-            Symbol result = children[0];
-
-            for (int i = 0; i < children.Count; i ++){
-
-                Symbol lhs = result.Evaluate();
-                Symbol rhs = children[i + 1].Evaluate();
-
-                result = lhs.Raise(rhs);
-
-                if (result == null){
-                    result = children[i + 1];
-                }
-            }
-            return result;
-        }
         public override Symbol Sum(Symbol other)
         {
-            throw new NotImplementedException();
+            return other.Sum(this);
         }
-        public override Symbol Multiply(Symbol other)
+        public override Symbol Sum(Summation other)
         {
             throw new NotImplementedException();
         }
-        public override Symbol Divide(Symbol other)
+        public override Symbol Sum(Multiplication other)
         {
             throw new NotImplementedException();
         }
-        public override Symbol Raise(Symbol other)
+        public override Symbol Sum(Division other)
         {
             throw new NotImplementedException();
         }
-        public override Symbol Floor(Symbol other)
+        public override Symbol Sum(Exponent other)
         {
             throw new NotImplementedException();
+        }
+        public override Symbol Sum(Radical other)
+        {
+            throw new NotImplementedException();
+        }
+        public override Symbol Sum(Variable other)
+        {
+            throw new NotImplementedException();
+        }
+        public override Symbol Sum(Constant other)
+        {
+            throw new NotImplementedException();
+        }
+        public override bool IsEqual(Symbol other){ return other.IsEqual(this); }
+        public override bool IsEqual(Summation other){ return false; }
+        public override bool IsEqual(Multiplication other){ return false; }
+        public override bool IsEqual(Division other){ return false; }
+        public override bool IsEqual(Exponent other){ if (this == other){ return true; } else { return false; } }
+        public override bool IsEqual(Radical other){ return false; }
+        public override bool IsEqual(Variable other){ return false; }
+        public override bool IsEqual(Constant other){ return false; }
+        public override bool CanApplyER1(){ return false; }
+        public override void IsER1Constituent(ref int stage)
+        {
+            if (stage == 1 || stage == 4)
+            {
+                stage ++;
+
+                List<int> children = GetChildren();
+
+                foreach (int child in children)
+                {
+                    expression.GetNode(child).IsER1Constituent(ref stage);
+                }
+                return;
+            }
+            else if (stage == 2 || stage == 3 || stage == 5 || stage == 6)
+            {
+                stage ++;
+                return;
+            }
+            else
+            {
+                return;
+            }
         }
     }
 }

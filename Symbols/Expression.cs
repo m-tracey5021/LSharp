@@ -71,6 +71,7 @@ namespace LSharp.Symbols
                 tree.Add(node);
 
                 node.expression = this;
+                node.index = 0;
 
                 root = 0;
 
@@ -88,6 +89,7 @@ namespace LSharp.Symbols
                 tree.Add(child);
 
                 child.expression = this;
+                child.index = 0;
 
                 root = 0;
 
@@ -97,11 +99,14 @@ namespace LSharp.Symbols
             {
                 tree.Add(child);
 
-                child.expression = this;
+                
 
                 int parentIndex = Search(parent);
 
                 int childIndex = tree.Count - 1; 
+
+                child.expression = this;
+                child.index = childIndex;
 
                 parentMap[childIndex] = parentIndex;
 
@@ -113,6 +118,15 @@ namespace LSharp.Symbols
             {
                 throw new Exception("Incorrect format supplied");
             }
+        }
+        public override string ToString()
+        {
+            string result = "";
+            foreach (Symbol symbol in tree)
+            {
+                result += symbol;
+            }
+            return result;
         }
     }
 }

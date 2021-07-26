@@ -5,6 +5,11 @@ namespace LSharp.Symbols
 {
     public class Multiplication : Symbol
     {
+        public Multiplication(){ this.sign = true; this.symbol = '*';}
+        public override Symbol Copy()
+        {
+            throw new NotImplementedException();
+        }
         public override Symbol Sum(Symbol other)
         {
             return other.Sum(this);

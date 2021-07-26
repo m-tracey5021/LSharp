@@ -5,6 +5,11 @@ namespace LSharp.Symbols
 {
     public class Exponent : Symbol
     {
+        public Exponent(){ this.sign = true; this.symbol = '*'; }
+        public override Symbol Copy()
+        {
+            throw new NotImplementedException();
+        }
         public override Symbol Sum(Symbol other)
         {
             return other.Sum(this);
@@ -46,6 +51,25 @@ namespace LSharp.Symbols
         public override bool IsEqual(Variable other){ return false; }
         public override bool IsEqual(Constant other){ return false; }
         public override bool CanApplyER1(){ return false; }
+        public override bool CanApplyER2()
+        {
+            int stage = 1;
+
+            List<int> children = GetChildren();
+
+            foreach (int child in children)
+            {
+                expression.GetNode(child).IsER2Constituent(ref stage);
+            }
+            if (stage == 5)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
         public override void IsER1Constituent(ref int stage)
         {
             if (stage == 1 || stage == 4)

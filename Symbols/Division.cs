@@ -5,6 +5,11 @@ namespace LSharp.Symbols
 {
     public class Division : Symbol
     {
+        public Division(){ this.sign = true; this.symbol = '/'; }
+        public override Symbol Copy()
+        {
+            throw new NotImplementedException();
+        }
         public override Symbol Sum(Symbol other)
         {
             return other.Sum(this);
@@ -51,6 +56,25 @@ namespace LSharp.Symbols
             if (stage == 2 || stage == 3 || stage == 5 || stage == 6)
             {
                 stage ++;
+                return;
+            }
+            else
+            {
+                return;
+            }
+        }
+        public override void IsER2Constituent(ref int stage)
+        {
+            if (stage == 1)
+            {
+                stage ++;
+
+                List<int> children = GetChildren();
+
+                foreach (int child in children)
+                {
+                    expression.GetNode(child).IsER2Constituent(ref stage);
+                }
                 return;
             }
             else

@@ -5,6 +5,11 @@ namespace LSharp.Symbols
 {
     public class Radical : Symbol
     {
+        public Radical(){ this.sign = true; this.symbol = 'v';}
+        public override Symbol Copy()
+        {
+            throw new NotImplementedException();
+        }
         public override Symbol Sum(Symbol other)
         {
             return other.Sum(this);

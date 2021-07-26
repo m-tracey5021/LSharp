@@ -8,6 +8,10 @@ namespace LSharp.Symbols
         public int value { get; set; }
         public Constant(){}
         public Constant(bool sign, int value){ this.symbol = Convert.ToChar(value); this.sign = sign; this.value = value; }
+        public override Symbol Copy()
+        {
+            throw new NotImplementedException();
+        }
         public override Symbol Sum(Symbol other)
         {
             return other.Sum(this);

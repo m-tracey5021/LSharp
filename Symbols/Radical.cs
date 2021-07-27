@@ -6,10 +6,7 @@ namespace LSharp.Symbols
     public class Radical : Symbol
     {
         public Radical(){ this.sign = true; this.symbol = 'v';}
-        public override Symbol Copy()
-        {
-            throw new NotImplementedException();
-        }
+
         public override Symbol Sum(Symbol other)
         {
             return other.Sum(this);
@@ -63,6 +60,10 @@ namespace LSharp.Symbols
             {
                 return;
             }
+        }
+        public override Symbol Copy()
+        {
+            return new Radical() { sign = this.sign, symbol = this.symbol, index = this.index };
         }
     }
 }

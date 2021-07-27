@@ -6,10 +6,7 @@ namespace LSharp.Symbols
     public class Division : Symbol
     {
         public Division(){ this.sign = true; this.symbol = '/'; }
-        public override Symbol Copy()
-        {
-            throw new NotImplementedException();
-        }
+
         public override Symbol Sum(Symbol other)
         {
             return other.Sum(this);
@@ -81,6 +78,10 @@ namespace LSharp.Symbols
             {
                 return;
             }
+        }
+        public override Symbol Copy()
+        {
+            return new Division() { sign = this.sign, symbol = this.symbol, index = this.index };
         }
     }
 }

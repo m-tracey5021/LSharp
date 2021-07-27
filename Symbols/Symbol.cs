@@ -39,7 +39,6 @@ namespace LSharp.Symbols
         {
             return expression.GetChild(index, path);
         }
-        public abstract Symbol Copy();
         public abstract Symbol Sum(Symbol other);
         public abstract Symbol Sum(Summation other);
         public abstract Symbol Sum(Multiplication other);
@@ -128,6 +127,15 @@ namespace LSharp.Symbols
 
             return result;
         }
+        public abstract Symbol Copy();
+
+        public virtual void CopyToSubTree(Expression parentExpression)
+        {
+            Symbol copy = Copy();
+
+
+        }
+
         public override string ToString()
         {
             return symbol.ToString();

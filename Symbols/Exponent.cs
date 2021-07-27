@@ -6,10 +6,7 @@ namespace LSharp.Symbols
     public class Exponent : Symbol
     {
         public Exponent(){ this.sign = true; this.symbol = '*'; }
-        public override Symbol Copy()
-        {
-            throw new NotImplementedException();
-        }
+
         public override Symbol Sum(Symbol other)
         {
             return other.Sum(this);
@@ -93,6 +90,10 @@ namespace LSharp.Symbols
             {
                 return;
             }
+        }
+        public override Symbol Copy()
+        {
+            return new Exponent() { sign = this.sign, symbol = this.symbol, index = this.index };
         }
     }
 }

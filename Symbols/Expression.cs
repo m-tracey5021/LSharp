@@ -119,6 +119,63 @@ namespace LSharp.Symbols
                 throw new Exception("Incorrect format supplied");
             }
         }
+        public Expression CopyTree()
+        {
+            Expression copiedExpression = new Expression();
+
+            copiedExpression.parentMap = new Dictionary<int, int>(parentMap);
+            copiedExpression.childMap = new Dictionary<int, List<int>>(childMap);
+
+            foreach (Symbol symbol in tree)
+            {
+                Symbol copy = symbol.Copy();
+
+                copy.expression = copiedExpression;
+
+                copiedExpression.tree.Add(copy);
+            }
+            return copiedExpression;
+        }
+
+        public Expression CopySubTree(int index)
+        {
+            Expression copiedExpression = new Expression();
+
+            Symbol rootCopy = GetNode(index).Copy();
+
+            rootCopy.expression = copiedExpression;
+
+            copiedExpression.AddNode(rootCopy);
+
+            List<int> children = childMap[index];
+
+            foreach (int childIndex in children)
+            {
+                Symbol childCopy = GetNode(childIndex).Copy();
+
+                copiedExpression.AddNode(rootCopy, childCopy);
+
+                CopySubTree(childIndex, childCopy.index, ref copiedExpression);
+            }
+            return copiedExpression;
+        }
+        public Expression CopySubTree(int indexInParent, int indexInCopy, ref Expression copiedExpression)
+        {
+            Symbol parentCopy = copiedExpression.GetNode(indexInCopy);
+
+            List<int> children = childMap[indexInParent];
+
+            foreach (int childIndex in children)
+            {
+                Symbol childCopy = GetNode(childIndex).Copy();
+
+                copiedExpression.AddNode(parentCopy, childCopy);
+
+                CopySubTree(childIndex, childCopy.index, ref copiedExpression);
+            }
+            return copiedExpression;
+        }
+
         public override string ToString()
         {
             string result = "";

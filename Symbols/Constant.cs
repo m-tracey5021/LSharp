@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using LSharp.Rules;
 
 namespace LSharp.Symbols
 {
@@ -8,7 +9,6 @@ namespace LSharp.Symbols
         public int value { get; set; }
         public Constant(){}
         public Constant(bool sign, int value){ this.symbol = Convert.ToChar(value); this.sign = sign; this.value = value; }
-
         public override Symbol Sum(Symbol other)
         {
             return other.Sum(this);
@@ -61,6 +61,19 @@ namespace LSharp.Symbols
             else
             {
                 return;
+            }
+        }
+        public override bool CanApply(Rule rule)
+        {
+            bool passed = rule.Test(this);
+            
+            if (passed)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
         public override Symbol Copy()

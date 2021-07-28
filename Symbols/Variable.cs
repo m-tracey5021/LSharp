@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using LSharp.Rules;
 
 namespace LSharp.Symbols
 {
@@ -60,6 +61,19 @@ namespace LSharp.Symbols
             else
             {
                 return;
+            }
+        }
+        public override bool CanApply(Rule rule)
+        {
+            bool passed = rule.Test(this);
+            
+            if (passed)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
         public override Symbol Copy()

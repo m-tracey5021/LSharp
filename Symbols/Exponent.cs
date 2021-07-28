@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using LSharp.Rules;
 
 namespace LSharp.Symbols
 {
     public class Exponent : Symbol
     {
-        public Exponent(){ this.sign = true; this.symbol = '*'; }
+        public Exponent(){ this.sign = true; this.symbol = '^'; }
 
         public override Symbol Sum(Symbol other)
         {
@@ -89,6 +90,35 @@ namespace LSharp.Symbols
             else
             {
                 return;
+            }
+        }
+        public override bool CanApply(Rule rule)
+        {
+            bool passed = rule.Test(this);
+            
+            if (passed)
+            {
+                if (rule.recurse)
+                {
+                    List<int> children = GetChildren();
+
+                    foreach (int child in children)
+                    {
+                        if (!expression.GetNode(child).CanApply(rule))
+                        {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                return false;
             }
         }
         public override Symbol Copy()

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LSharp.Rules;
 
 
 namespace LSharp.Symbols
@@ -127,6 +128,7 @@ namespace LSharp.Symbols
 
             return result;
         }
+        public abstract bool CanApply(Rule rule);
         public abstract Symbol Copy();
 
         public virtual void CopyToSubTree(Expression parentExpression)

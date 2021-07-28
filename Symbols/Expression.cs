@@ -119,6 +119,31 @@ namespace LSharp.Symbols
                 throw new Exception("Incorrect format supplied");
             }
         }
+        public bool IsEqual(Expression other)
+        {
+            if (parentMap == other.parentMap && childMap == other.childMap)
+            {
+                if (tree.Count == other.tree.Count)
+                {
+                    for (int i = 0; i < tree.Count; i ++)
+                    {
+                        if (!tree[i].IsEqual(other.tree[i]))
+                        {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
         public Expression CopyTree()
         {
             Expression copiedExpression = new Expression();

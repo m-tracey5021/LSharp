@@ -6,32 +6,22 @@ namespace LSharp.Rules
 {
     public class LikeTerm : Rule
     {
-        private static readonly Dictionary<int, char> structure1 = new Dictionary<int, char>()
-        {
-            { 0, '+' },
-            { 1, '*' },
-            { 2, 'n' },
-            { 3, 'x' },
-            { 4, '*' },
-            { 5, 'n' },
-            { 6, 'x' }
-        };
+        private static readonly Structure structure = new Structure
+        (
+            6, 
+            new List<char>(){ '+', '*', 'n', 'x', '*', 'n', 'x',  },
+            new List<bool>(){ true, true, false, false, true, false, false }
+        );
         public Symbol variable { get; set; }
         public int totalSum { get; set; }
-        public bool noMulLhs { get; set; }
-        public bool noMulRhs { get; set; }
         public LikeTerm() : base(){}
         public override bool Test(Summation summation)
         {
-            if (stage == 0)
-            {
-                SuccessContinue();
+            StructureStage structureStage = structure.At(stage);
 
-                return true;
-            }
-            else if (stage == 3 || stage == 6)
+            if (structureStage.type == '+')
             {
-                SuccessReturn();
+                Success(structureStage);
 
                 return true;
             }
@@ -42,32 +32,13 @@ namespace LSharp.Rules
         }
         public override bool Test(Multiplication multiplication)
         {
-            if (stage == 1 || stage == 4)
+            StructureStage structureStage = structure.At(stage);
+
+            if (structureStage.type == '*')
             {
-                SuccessContinue();
+                Success(structureStage);
 
                 return true;
-            }
-            else if (stage == 3)
-            {
-                variable = multiplication;
-
-                SuccessReturn();
-
-                return true;
-            }
-            else if (stage == 6)
-            {
-                if (variable.IsEqual(multiplication))
-                {
-                    SuccessReturn();
-
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
             }
             else
             {
@@ -92,13 +63,15 @@ namespace LSharp.Rules
         }
         public override bool Test(Constant constant)
         {
-            if (stage == 2 || stage == 5)
+            StructureStage structureStage = structure.At(stage);
+
+            if (structureStage.type == 'n')
             {
                 if (constant.GetValue() != null)
                 {
                     totalSum += (int) constant.GetValue();
                 }
-                SuccessReturn();
+                Success(structureStage);
 
                 return true;
             }
@@ -107,38 +80,30 @@ namespace LSharp.Rules
                 return false;
             }
         }
+        public override Expression Apply(Symbol symbol)
+        {
+            throw new NotImplementedException();
+        }
         public bool GenericPass(Symbol symbol)
         {
-            if (stage == 1)
+            StructureStage structureStage = structure.At(stage);
+
+            if (structureStage.type == 'x')
             {
-                variable = symbol;
-
-                noMulLhs = true;
-
-                SuccessReturn();
-
-                return true;
-            }
-            else if (stage == 3)
-            {
-                variable = symbol;
-
-                SuccessReturn();
-
-                return true;
-            }
-            else if (stage == 6)
-            {
-                if (symbol.IsEqual(variable))
+                if (stage == 3)
                 {
-                    SuccessReturn();
-
-                    return true;
+                    variable = symbol;
                 }
-                else
+                if (stage == 6)
                 {
-                    return false;
+                    if (!symbol.IsEqual(variable))
+                    {
+                        return false;
+                    }
                 }
+                Success(structureStage);
+
+                return true; 
             }
             else
             {

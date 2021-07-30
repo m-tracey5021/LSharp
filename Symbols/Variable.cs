@@ -10,6 +10,7 @@ namespace LSharp.Symbols
         public Variable(){}
         public Variable(bool sign, char value){ this.symbol = value; this.sign = sign; this.value = value; }
 
+        public override int? GetValue(){ return null; }
         public override Symbol Sum(Symbol other)
         {
             return other.Sum(this);

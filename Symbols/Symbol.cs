@@ -40,6 +40,7 @@ namespace LSharp.Symbols
         {
             return expression.GetChild(index, path);
         }
+        public abstract int? GetValue();
         public abstract Symbol Sum(Symbol other);
         public abstract Symbol Sum(Summation other);
         public abstract Symbol Sum(Multiplication other);

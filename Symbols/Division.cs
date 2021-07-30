@@ -8,6 +8,7 @@ namespace LSharp.Symbols
     {
         public Division(){ this.sign = true; this.symbol = '/'; }
 
+        public override int? GetValue(){ return null; }
         public override Symbol Sum(Symbol other)
         {
             return other.Sum(this);

@@ -8,6 +8,7 @@ namespace LSharp.Symbols
     {
         public Radical(){ this.sign = true; this.symbol = 'v';}
 
+        public override int? GetValue(){ return null; }
         public override Symbol Sum(Symbol other)
         {
             return other.Sum(this);

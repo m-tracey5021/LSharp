@@ -8,7 +8,7 @@ namespace LSharp.Symbols
     {
         public int value { get; set; }
         public Constant(){}
-        public Constant(bool sign, int value){ this.symbol = Convert.ToChar(value); this.sign = sign; this.value = value; }
+        public Constant(bool sign, int value){ this.sign = sign; this.value = value; }
 
         public override int? GetValue(){ return value; }
         public override Symbol Sum(Symbol other)
@@ -50,7 +50,17 @@ namespace LSharp.Symbols
         public override bool IsEqual(Exponent other){ return false; }
         public override bool IsEqual(Radical other){ return false; }
         public override bool IsEqual(Variable other){ return false; }
-        public override bool IsEqual(Constant other){ if (this == other){ return true; } else { return false; } }
+        public override bool IsEqual(Constant other)
+        {
+            if (value == other.value)
+            {
+                return true;
+            }   
+            else
+            {
+                return false;
+            }
+        }
 
         public override bool CanApplyER1(){ return false; }
         public override void IsER1Constituent(ref int stage)
@@ -80,7 +90,11 @@ namespace LSharp.Symbols
         }
         public override Symbol Copy()
         {
-            return new Constant() { sign = this.sign, symbol = this.symbol, index = this.index };
+            return new Constant() { sign = this.sign, index = this.index };
+        }
+        public override string ToString()
+        {
+            return value.ToString();
         }
     }
 }

@@ -6,7 +6,7 @@ namespace LSharp.Symbols
 {
     public class Exponent : Symbol
     {
-        public Exponent(){ this.sign = true; this.symbol = '^'; }
+        public Exponent(){ this.sign = true; }
 
         public override int? GetValue(){ return null; }
         public override Symbol Sum(Symbol other)
@@ -45,7 +45,27 @@ namespace LSharp.Symbols
         public override bool IsEqual(Summation other){ return false; }
         public override bool IsEqual(Multiplication other){ return false; }
         public override bool IsEqual(Division other){ return false; }
-        public override bool IsEqual(Exponent other){ if (this == other){ return true; } else { return false; } }
+        public override bool IsEqual(Exponent other)
+        {
+            List<int> children = GetChildren();
+            List<int> otherChildren = other.GetChildren();
+
+            if (children.Count == otherChildren.Count)
+            {
+                for (int i = 0; i < children.Count; i ++)
+                {
+                    if (!expression.GetNode(children[i]).IsEqual(expression.GetNode(otherChildren[i])))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }   
+            else
+            {
+                return false;
+            }
+        }
         public override bool IsEqual(Radical other){ return false; }
         public override bool IsEqual(Variable other){ return false; }
         public override bool IsEqual(Constant other){ return false; }
@@ -124,7 +144,11 @@ namespace LSharp.Symbols
         }
         public override Symbol Copy()
         {
-            return new Exponent() { sign = this.sign, symbol = this.symbol, index = this.index };
+            return new Exponent() { sign = this.sign, index = this.index };
+        }
+        public override string ToString()
+        {
+            return Char.ToString('^');
         }
     }
 }

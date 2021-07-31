@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace LSharp.Symbols
@@ -119,6 +120,18 @@ namespace LSharp.Symbols
                 throw new Exception("Incorrect format supplied");
             }
         }
+        public void AddNode(Symbol parent, Expression children)
+        {
+            foreach (Symbol child in children.tree)
+            {
+                int offset = tree.Count;
+
+                parentMap[offset] = children.parentMap[child.index] + offset;
+                childMap[offset] = children.childMap[child.index].Select(x => x + offset).ToList();
+
+                tree.Add(child);
+            }
+        }
         public bool IsEqual(Expression other)
         {
             if (parentMap == other.parentMap && childMap == other.childMap)
@@ -204,9 +217,10 @@ namespace LSharp.Symbols
         public override string ToString()
         {
             string result = "";
+
             foreach (Symbol symbol in tree)
             {
-                result += symbol;
+                result += symbol.ToString();
             }
             return result;
         }

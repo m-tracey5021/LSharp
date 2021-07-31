@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Text;
 using LSharp.Rules;
 
 
@@ -9,14 +9,14 @@ namespace LSharp.Symbols
     public abstract class Symbol
     {
         public bool sign { get; set; }
-        public char symbol { get; set; }
+        // public char symbol { get; set; }
         public int index { get; set; }
         public Expression expression { get; set; }
 
         // constructors
 
         public Symbol(){}
-        public Symbol(bool sign, char symbol){ this.sign = sign; this.symbol = symbol; }
+        public Symbol(bool sign){ this.sign = sign; }
 
         // methods
 
@@ -139,9 +139,6 @@ namespace LSharp.Symbols
 
         }
 
-        public override string ToString()
-        {
-            return symbol.ToString();
-        }
+        public new abstract string ToString();
     }
 }

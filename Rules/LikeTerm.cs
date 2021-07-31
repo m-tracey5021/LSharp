@@ -12,7 +12,7 @@ namespace LSharp.Rules
             new List<char>(){ '+', '*', 'n', 'x', '*', 'n', 'x',  },
             new List<bool>(){ true, true, false, false, true, false, false }
         );
-        public Symbol variable { get; set; }
+        public int variableIndex { get; set; }
         public int totalSum { get; set; }
         public LikeTerm() : base(){}
         public override bool Test(Summation summation)
@@ -82,7 +82,20 @@ namespace LSharp.Rules
         }
         public override Expression Apply(Symbol symbol)
         {
-            throw new NotImplementedException();
+            Expression expression = new Expression();
+
+            Symbol mul = new Multiplication();
+
+            Symbol total = new Constant(true, totalSum);
+
+            Expression variable = symbol.expression.CopySubTree(variableIndex);
+
+            expression.AddNode(mul);
+
+            expression.AddNode(mul, total);
+            expression.AddNode(mul, variable);
+
+            return expression;
         }
         public bool GenericPass(Symbol symbol)
         {
@@ -92,11 +105,11 @@ namespace LSharp.Rules
             {
                 if (stage == 3)
                 {
-                    variable = symbol;
+                    variableIndex = symbol.index;
                 }
                 if (stage == 6)
                 {
-                    if (!symbol.IsEqual(variable))
+                    if (!symbol.IsEqual(symbol.expression.GetNode(variableIndex)))
                     {
                         return false;
                     }

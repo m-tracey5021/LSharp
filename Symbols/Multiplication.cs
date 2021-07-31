@@ -6,7 +6,7 @@ namespace LSharp.Symbols
 {
     public class Multiplication : Symbol
     {
-        public Multiplication(){ this.sign = true; this.symbol = '*';}
+        public Multiplication(){ this.sign = true; }
         
         public override int? GetValue(){ return null; }
         public override Symbol Sum(Symbol other)
@@ -43,7 +43,26 @@ namespace LSharp.Symbols
         }
         public override bool IsEqual(Symbol other){ return other.IsEqual(this); }
         public override bool IsEqual(Summation other){ return false; }
-        public override bool IsEqual(Multiplication other){ if (this == other){ return true; } else { return false; } }
+        public override bool IsEqual(Multiplication other){
+            List<int> children = GetChildren();
+            List<int> otherChildren = other.GetChildren();
+
+            if (children.Count == otherChildren.Count)
+            {
+                for (int i = 0; i < children.Count; i ++)
+                {
+                    if (!expression.GetNode(children[i]).IsEqual(expression.GetNode(otherChildren[i])))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }   
+            else
+            {
+                return false;
+            }
+        }
         public override bool IsEqual(Division other){ return false; }
         public override bool IsEqual(Exponent other){ return false; }
         public override bool IsEqual(Radical other){ return false; }
@@ -123,7 +142,11 @@ namespace LSharp.Symbols
         }
         public override Symbol Copy()
         {
-            return new Multiplication() { sign = this.sign, symbol = this.symbol, index = this.index };
+            return new Multiplication() { sign = this.sign, index = this.index };
+        }
+        public override string ToString()
+        {
+            return Char.ToString('*');
         }
     }
 }

@@ -79,7 +79,9 @@ namespace LSharp.Rules
 
             Symbol b = expression.GetNode(symbol.GetChild(new List<int> { 0, 1 }));
 
-            Symbol m = expression.GetNode(symbol.GetChild(1));
+            Symbol m1 = expression.GetNode(symbol.GetChild(1)).Copy();
+
+            Symbol m2 = expression.GetNode(symbol.GetChild(1)).Copy();
 
             result.AddNode(division);
 
@@ -88,10 +90,10 @@ namespace LSharp.Rules
             result.AddNode(division, exp2);
 
             result.AddNode(exp1, a);
-            result.AddNode(exp1, m);
+            result.AddNode(exp1, m1);
 
             result.AddNode(exp2, b);
-            result.AddNode(exp2, m);
+            result.AddNode(exp2, m2);
 
             return result;
         }

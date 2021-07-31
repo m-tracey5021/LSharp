@@ -80,7 +80,7 @@ namespace LSharp.Symbols
             }
             if (stage == 7)
             {
-                int index = expression.Search(this);
+                int index = expression.GetNode(this);
 
                 Symbol ll = expression.GetNode(expression.GetChild(index, new List<int> { 0, 0 }));
                 Symbol rl = expression.GetNode(expression.GetChild(index, new List<int> { 1, 0 }));
@@ -142,7 +142,7 @@ namespace LSharp.Symbols
         }
         public override Symbol Copy()
         {
-            return new Multiplication() { sign = this.sign, index = this.index };
+            return new Multiplication() { sign = this.sign };
         }
         public override string ToString()
         {

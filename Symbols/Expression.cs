@@ -7,29 +7,24 @@ namespace LSharp.Symbols
     public class Expression
     {
         private int root { get; set; }
-        private List<Symbol> tree { get; set; }
+        private Dictionary<int, Symbol> tree { get; set; }
         private Dictionary<int, int> parentMap { get; set; }
         private Dictionary<int, List<int>> childMap { get; set; }
+        private Dictionary<Symbol, int> reverseTree { get; set; }
         public Expression()
         {
-            tree = new List<Symbol>();
+            tree = new Dictionary<int, Symbol>();
+            reverseTree = new Dictionary<Symbol, int>();
             parentMap = new Dictionary<int, int>();
             childMap = new Dictionary<int, List<int>>();
-        }
-        public int Search(Symbol node)
-        {
-            for (int i = 0; i < tree.Count; i ++)
-            {
-                if (tree[i] == node)
-                {
-                    return i;
-                }
-            }
-            return -1;
         }
         public Symbol GetNode(int index)
         {
             return tree[index];
+        }
+        public int GetNode(Symbol symbol)
+        {
+            return reverseTree[symbol];
         }
         public int GetParent(int index)
         {
@@ -65,14 +60,29 @@ namespace LSharp.Symbols
 
             return nextChild;
         }
+        public void AddToMap(Symbol node)
+        {
+            int size = tree.Count;
+
+            try 
+            {
+                reverseTree.Add(node, size);
+
+                tree.Add(size, node);
+            }
+            catch (Exception exception)
+            {
+                throw exception;
+            }
+        }
         public void AddNode(Symbol node)
         {
             if (tree.Count == 0)
             {
-                tree.Add(node);
+                AddToMap(node);
 
                 node.expression = this;
-                node.index = 0;
+                // node.index = 0;
 
                 root = 0;
 
@@ -87,10 +97,10 @@ namespace LSharp.Symbols
         {
             if (tree.Count == 0 && parent == null)
             {
-                tree.Add(child);
+                AddToMap(child);
 
                 child.expression = this;
-                child.index = 0;
+                // child.index = 0;
 
                 root = 0;
 
@@ -98,16 +108,14 @@ namespace LSharp.Symbols
             }
             else if (tree.Count > 0 && parent != null)
             {
-                tree.Add(child);
+                AddToMap(child);
 
-                
-
-                int parentIndex = Search(parent);
+                int parentIndex = reverseTree[parent];
 
                 int childIndex = tree.Count - 1; 
 
                 child.expression = this;
-                child.index = childIndex;
+                // child.index = childIndex;
 
                 parentMap[childIndex] = parentIndex;
 
@@ -122,14 +130,14 @@ namespace LSharp.Symbols
         }
         public void AddNode(Symbol parent, Expression children)
         {
-            foreach (Symbol child in children.tree)
+            foreach (KeyValuePair<int, Symbol> child in children.tree)
             {
                 int offset = tree.Count;
 
-                parentMap[offset] = children.parentMap[child.index] + offset;
-                childMap[offset] = children.childMap[child.index].Select(x => x + offset).ToList();
+                parentMap.Add(offset, children.parentMap[child.Key] + offset);
+                childMap.Add(offset, children.childMap[child.Key].Select(x => x + offset).ToList());
 
-                tree.Add(child);
+                AddToMap(child.Value);
             }
         }
         public bool IsEqual(Expression other)
@@ -164,13 +172,13 @@ namespace LSharp.Symbols
             copiedExpression.parentMap = new Dictionary<int, int>(parentMap);
             copiedExpression.childMap = new Dictionary<int, List<int>>(childMap);
 
-            foreach (Symbol symbol in tree)
+            foreach (Symbol symbol in tree.Values)
             {
                 Symbol copy = symbol.Copy();
 
                 copy.expression = copiedExpression;
 
-                copiedExpression.tree.Add(copy);
+                copiedExpression.AddToMap(copy);
             }
             return copiedExpression;
         }
@@ -193,7 +201,7 @@ namespace LSharp.Symbols
 
                 copiedExpression.AddNode(rootCopy, childCopy);
 
-                CopySubTree(childIndex, childCopy.index, ref copiedExpression);
+                CopySubTree(childIndex, copiedExpression.GetNode(childCopy), ref copiedExpression);
             }
             return copiedExpression;
         }
@@ -209,7 +217,7 @@ namespace LSharp.Symbols
 
                 copiedExpression.AddNode(parentCopy, childCopy);
 
-                CopySubTree(childIndex, childCopy.index, ref copiedExpression);
+                CopySubTree(childIndex, copiedExpression.GetNode(childCopy), ref copiedExpression);
             }
             return copiedExpression;
         }
@@ -218,7 +226,7 @@ namespace LSharp.Symbols
         {
             string result = "";
 
-            foreach (Symbol symbol in tree)
+            foreach (Symbol symbol in tree.Values)
             {
                 result += symbol.ToString();
             }

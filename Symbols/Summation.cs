@@ -114,7 +114,7 @@ namespace LSharp.Symbols
         }
         public override Symbol Copy()
         {
-            return new Summation() { sign = this.sign, index = this.index };
+            return new Summation() { sign = this.sign };
         }
         public override string ToString()
         {

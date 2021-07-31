@@ -105,7 +105,7 @@ namespace LSharp.Rules
             {
                 if (stage == 3)
                 {
-                    variableIndex = symbol.index;
+                    variableIndex = symbol.GetIndex();
                 }
                 if (stage == 6)
                 {

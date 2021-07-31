@@ -90,7 +90,7 @@ namespace LSharp.Symbols
         }
         public override Symbol Copy()
         {
-            return new Constant() { sign = this.sign, index = this.index };
+            return new Constant() { sign = this.sign };
         }
         public override string ToString()
         {

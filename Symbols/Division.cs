@@ -132,7 +132,7 @@ namespace LSharp.Symbols
         }
         public override Symbol Copy()
         {
-            return new Division() { sign = this.sign, index = this.index };
+            return new Division() { sign = this.sign };
         }
         public override string ToString()
         {

@@ -114,7 +114,7 @@ namespace LSharp.Symbols
         }
         public override Symbol Copy()
         {
-            return new Radical() { sign = this.sign, index = this.index };
+            return new Radical() { sign = this.sign };
         }
         public override string ToString()
         {

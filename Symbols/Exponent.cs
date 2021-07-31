@@ -144,7 +144,7 @@ namespace LSharp.Symbols
         }
         public override Symbol Copy()
         {
-            return new Exponent() { sign = this.sign, index = this.index };
+            return new Exponent() { sign = this.sign };
         }
         public override string ToString()
         {

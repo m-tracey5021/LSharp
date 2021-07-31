@@ -10,7 +10,7 @@ namespace LSharp.Symbols
     {
         public bool sign { get; set; }
         // public char symbol { get; set; }
-        public int index { get; set; }
+        // public int index { get; set; }
         public Expression expression { get; set; }
 
         // constructors
@@ -20,25 +20,29 @@ namespace LSharp.Symbols
 
         // methods
 
+        public virtual int GetIndex()
+        {
+            return expression.GetNode(this);
+        }
         public virtual int GetParent()
         {
-            return expression.GetParent(index);
+            return expression.GetParent(GetIndex());
         }
         public virtual int GetParent(int depth)
         {
-            return expression.GetParent(index, depth);
+            return expression.GetParent(GetIndex(), depth);
         }
         public virtual List<int> GetChildren()
         {
-            return expression.GetChildren(index);
+            return expression.GetChildren(GetIndex());
         }
         public virtual int GetChild(int breadth)
         {
-            return expression.GetChild(index, breadth);
+            return expression.GetChild(GetIndex(), breadth);
         }
         public virtual int GetChild(List<int> path)
         {
-            return expression.GetChild(index, path);
+            return expression.GetChild(GetIndex(), path);
         }
         public abstract int? GetValue();
         public abstract Symbol Sum(Symbol other);

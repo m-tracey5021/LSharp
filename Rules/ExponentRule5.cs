@@ -1,146 +1,70 @@
 using System;
+using System.Collections.Generic;
 using LSharp.Symbols;
 
 namespace LSharp.Rules
 {
     public class ExponentRule5 : Rule
     {
-        public Symbol secondStageVariable { get; set; }
-        public ExponentRule5() : base(){}
-        public override bool Test(Summation summation)
+        public int variableIndex { get; set; }
+        public ExponentRule5() : base(new Structure
+        (
+            6, 
+            new List<char>(){ '/', '^', 'x', 'x', '^', 'x', 'x' },
+            new List<bool>(){ true, true, false, false, true, false, false }
+        ))
         {
-            return GenericPass(summation);
+
         }
-        public override bool Test(Multiplication multiplication)
+        public override bool AppliesTo(Symbol symbol)
         {
-            return GenericPass(multiplication);
-        }
-        public override bool Test(Division division)
-        {
-            if (stage == 0)
-            {
-                SuccessContinue();
+            bool passed = symbol.TestAgainstStage(structure.At(stage));
 
-                return true;
-            }
-            else if (stage == 2)
+            if (passed)
             {
-                secondStageVariable = division;
-
-                SuccessReturn();
-
-                return true;
-            }
-            else if (stage == 5)
-            {
-                if (secondStageVariable.IsEqual(division))
+                if (stage == 0 || stage == 1 || stage == 4)
                 {
-                    SuccessReturn();
+                    stage ++;
+
+                    foreach (int child in symbol.GetChildren())
+                    {
+                        if (!AppliesTo(symbol.expression.GetNode(child)))
+                        {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+                else if (stage == 2)
+                {
+                    variableIndex = symbol.GetIndex();
+
+                    stage ++;
 
                     return true;
                 }
-                else
+                else if (stage == 5)
                 {
-                    return false;
-                }
-            }
-            else if (stage == 3 || stage == 6)
-            {
-                SuccessReturn();
-
-                return true;
-            }
-            else
-            {   
-                return false;
-            }
-        }
-        public override bool Test(Exponent exponent)
-        {
-            if (stage == 1 || stage == 4)
-            {
-                SuccessContinue();
-
-                return true;
-            }
-            else if (stage == 2)
-            {
-                secondStageVariable = exponent;
-
-                SuccessReturn();
-
-                return true;
-            }
-            else if (stage == 5)
-            {
-                if (secondStageVariable.IsEqual(exponent))
-                {
-                    SuccessReturn();
+                    if (!symbol.IsEqual(symbol.expression.GetNode(variableIndex)))
+                    {
+                        return false;
+                    }
+                    stage ++;
 
                     return true;
                 }
-                else
+                else 
                 {
-                    return false;
-                }
-            }
-            else if (stage == 3 || stage == 6)
-            {
-                SuccessReturn();
+                    stage ++;
 
-                return true;
+                    return true;
+                }
             }
             else
             {
                 return false;
             }
-        }
-        public override bool Test(Radical radical)
-        {
-            return GenericPass(radical);
-        }
-        public override bool Test(Variable variable)
-        {
-            return GenericPass(variable);
-        }
-        public override bool Test(Constant constant)
-        {
-            return GenericPass(constant);
         }
         public override Expression Apply(Symbol symbol){ return null; }
-        public bool GenericPass(Symbol symbol)
-        {
-            if (stage == 2)
-            {
-                secondStageVariable = symbol;
-
-                SuccessReturn();
-
-                return true;
-            }
-            else if (stage == 5)
-            {
-                if (secondStageVariable.IsEqual(symbol))
-                {
-                    SuccessReturn();
-
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            else if (stage == 3 || stage == 6)
-            {
-                SuccessReturn();
-                
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
     }
 }

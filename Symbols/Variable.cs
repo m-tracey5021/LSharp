@@ -61,24 +61,9 @@ namespace LSharp.Symbols
             }
         }
         public override bool IsEqual(Constant other){ return false; }
-        public override bool CanApplyER1(){ return false; }
-        public override void IsER1Constituent(ref int stage)
+        public override bool TestAgainstStage(StructureStage stage)
         {
-            if (stage == 2 || stage == 3 || stage == 5 || stage == 6)
-            {
-                stage ++;
-                return;
-            }
-            else
-            {
-                return;
-            }
-        }
-        public override bool CanApply(Rule rule)
-        {
-            bool passed = rule.Test(this);
-            
-            if (passed)
+            if (stage.type == 'x')
             {
                 return true;
             }

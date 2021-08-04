@@ -6,64 +6,46 @@ namespace LSharp.Rules
 {
     public class ExponentRule2 : Rule
     {
-        public ExponentRule2() : base(){}
-        public override bool Test(Summation summation)
+        public ExponentRule2() : base(new Structure
+        (
+            4, 
+            new List<char>(){ '^', '/', 'x', 'x', 'x' },
+            new List<bool>(){ true, true, false, false, false }
+        ))
         {
-            return GenericPass();
-        }
-        public override bool Test(Multiplication multiplication)
-        {
-            return GenericPass();
-        }
-        public override bool Test(Division division)
-        {
-            if (stage == 1)
-            {
-                SuccessContinue();
 
-                return true;
-            }
-            else if (stage == 2 || stage == 3 || stage == 4)
-            {
-                SuccessReturn();
+        }
+        public override bool AppliesTo(Symbol symbol)
+        {
+            bool passed = symbol.TestAgainstStage(structure.At(stage));
 
-                return true;
+            if (passed)
+            {
+                if (stage == 0 || stage == 1)
+                {
+                    stage ++;
+
+                    foreach (int child in symbol.GetChildren())
+                    {
+                        if (!AppliesTo(symbol.expression.GetNode(child)))
+                        {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+                else
+                {
+                    stage ++;
+
+                    return true;
+                }
             }
             else
             {
                 return false;
             }
-        }
-        public override bool Test(Exponent exponent)
-        {
-            if (stage == 0)
-            {
-                SuccessContinue();
-
-                return true;
-            }
-            else if (stage == 2 || stage == 3 || stage == 4)
-            {
-                SuccessReturn();
-
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        public override bool Test(Radical radical)
-        {
-            return GenericPass();
-        }
-        public override bool Test(Variable variable)
-        {
-            return GenericPass();
-        }
-        public override bool Test(Constant constant)
-        {
-            return GenericPass();
+        
         }
         public override Expression Apply(Symbol symbol)
         {
@@ -96,19 +78,6 @@ namespace LSharp.Rules
             result.AddNode(exp2, m2);
 
             return result;
-        }
-        public bool GenericPass()
-        {
-            if (stage == 2 || stage == 3 || stage == 4)
-            {
-                SuccessReturn();
-                
-                return true;
-            }
-            else
-            {
-                return false;
-            }
         }
     }
 }

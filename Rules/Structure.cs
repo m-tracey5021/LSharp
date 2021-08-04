@@ -28,9 +28,5 @@ namespace LSharp.Rules
     {
         public char type { get; set; }
         public bool recurse { get; set; }
-        public bool Test(Summation summation)
-        {
-            if (type == '+')
-        }
     }
 }

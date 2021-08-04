@@ -68,72 +68,11 @@ namespace LSharp.Symbols
         public override bool IsEqual(Radical other){ return false; }
         public override bool IsEqual(Variable other){ return false; }
         public override bool IsEqual(Constant other){ return false; }
-        public override bool CanApplyER1()
+        public override bool TestAgainstStage(StructureStage stage)
         {
-            int stage = 1;
-
-            List<int> children = GetChildren();
-
-            foreach (int child in children)
+            if (stage.type == '*' || stage.type == 'x')
             {
-                expression.GetNode(child).IsER1Constituent(ref stage);
-            }
-            if (stage == 7)
-            {
-                int index = expression.GetNode(this);
-
-                Symbol ll = expression.GetNode(expression.GetChild(index, new List<int> { 0, 0 }));
-                Symbol rl = expression.GetNode(expression.GetChild(index, new List<int> { 1, 0 }));
-
-                if (ll.IsEqual(rl))
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                return false;    
-            }
-        }
-        public override void IsER1Constituent(ref int stage)
-        {
-            if (stage == 2 || stage == 3 || stage == 5 || stage == 6)
-            {
-                stage ++;
-                return;
-            }
-            else
-            {
-                return;
-            }
-        }
-        public override bool CanApply(Rule rule)
-        {
-            bool passed = rule.Test(this);
-            
-            if (passed)
-            {
-                if (rule.recurse)
-                {
-                    List<int> children = GetChildren();
-
-                    foreach (int child in children)
-                    {
-                        if (!expression.GetNode(child).CanApply(rule))
-                        {
-                            return false;
-                        }
-                    }
-                    return true;
-                }
-                else
-                {
-                    return true;
-                }
+                return true;
             }
             else
             {

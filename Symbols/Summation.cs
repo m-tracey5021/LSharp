@@ -70,42 +70,11 @@ namespace LSharp.Symbols
         public override bool IsEqual(Radical other){ return false; }
         public override bool IsEqual(Variable other){ return false; }
         public override bool IsEqual(Constant other){ return false; }
-        public override bool CanApplyER1(){ return false; }
-        public override void IsER1Constituent(ref int stage)
+        public override bool TestAgainstStage(StructureStage stage)
         {
-            if (stage == 2 || stage == 3 || stage == 5 || stage == 6)
+            if (stage.type == '+' || stage.type == 'x')
             {
-                stage ++;
-                return;
-            }
-            else
-            {
-                return;
-            }
-        }
-        public override bool CanApply(Rule rule)
-        {
-            bool passed = rule.Test(this);
-            
-            if (passed)
-            {
-                if (rule.recurse)
-                {
-                    List<int> children = GetChildren();
-
-                    foreach (int child in children)
-                    {
-                        if (!expression.GetNode(child).CanApply(rule))
-                        {
-                            return false;
-                        }
-                    }
-                    return true;
-                }
-                else
-                {
-                    return true;
-                }
+                return true;
             }
             else
             {

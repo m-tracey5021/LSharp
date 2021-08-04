@@ -6,22 +6,127 @@ namespace LSharp.Rules
 {
     public class LikeTerm : Rule
     {
-        private static readonly Structure structure = new Structure
+        public Structure structure = new Structure
         (
             6, 
-            new List<char>(){ '+', '*', 'n', 'x', '*', 'n', 'x',  },
+            new List<char>(){ '+', '*', 'n', 'x', '*', 'n', 'x' },
             new List<bool>(){ true, true, false, false, true, false, false }
         );
+        private static readonly Structure deepLeftStructure = new Structure
+        (
+            4,
+            new List<char>(){ '+', '*', 'n', 'x', 'x' },
+            new List<bool>(){ true, true, false, false, false }
+        );
+        private static readonly Structure deepRightStructure = new Structure
+        (
+            4,
+            new List<char>(){ '+', 'x', '*', 'n', 'x' },
+            new List<bool>(){ true, false, true, false, false }
+        );
+        private static readonly Structure smallStructure = new Structure
+        (
+            2,
+            new List<char>(){ '+', 'x', 'x' },
+            new List<bool>(){ true, false, false }
+        );
+        private List<int> lhsChildren { get; set; }
+        private List<int> rhsChildren { get; set; }
+        
         public int variableIndex { get; set; }
         public int totalSum { get; set; }
-        public LikeTerm() : base(){}
+        public LikeTerm() : base(new Structure
+        (
+            6, 
+            new List<char>(){ '+', '*', 'n', 'x', '*', 'n', 'x' },
+            new List<bool>(){ true, true, false, false, true, false, false }
+        ))
+        {
+
+        }
+
+        public override bool AppliesTo(Symbol symbol)
+        {
+            bool passed = symbol.TestAgainstStage(structure.At(stage));
+
+            if (passed)
+            {
+                List<int> children = symbol.GetChildren();
+
+                if (stage == 1)
+                {
+
+                }
+                else if (stage == 2)
+                {
+
+                }
+                else
+                {
+                    foreach (int child in children)
+                    {
+                        if (!AppliesTo(symbol.expression.GetNode(child)))
+                        {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+        public override bool Test(Symbol symbol)
+        {
+            StructureStage structureStage = structure.At(stage);
+
+            if (symbol.ToString().Contains(structureStage.type))
+            {
+                Success();
+
+                return true;
+            }
+            else if (structureStage.type == 'n' && symbol.variable == false)
+            {
+                if (symbol.GetValue() != null)
+                {
+                    totalSum += (int) symbol.GetValue();
+                }
+                Success();
+
+                return true;
+            }
+            else if (structureStage.type == 'x' && symbol.variable == true)
+            {
+                if (stage == 3)
+                {
+                    variableIndex = symbol.GetIndex();
+                }
+                else if (stage == 6)
+                {
+                    if (!symbol.IsEqual(symbol.expression.GetNode(variableIndex)))
+                    {
+                        return false;
+                    }
+                }
+                Success();
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
         public override bool Test(Summation summation)
         {
             StructureStage structureStage = structure.At(stage);
 
             if (structureStage.type == '+')
             {
-                Success(structureStage);
+                Success();
 
                 return true;
             }
@@ -36,7 +141,7 @@ namespace LSharp.Rules
 
             if (structureStage.type == '*')
             {
-                Success(structureStage);
+                Success();
 
                 return true;
             }
@@ -71,7 +176,7 @@ namespace LSharp.Rules
                 {
                     totalSum += (int) constant.GetValue();
                 }
-                Success(structureStage);
+                Success();
 
                 return true;
             }
@@ -114,7 +219,7 @@ namespace LSharp.Rules
                         return false;
                     }
                 }
-                Success(structureStage);
+                Success();
 
                 return true; 
             }

@@ -8,7 +8,7 @@ namespace LSharp.Symbols
     {
         public int value { get; set; }
         public Constant(){}
-        public Constant(bool sign, int value){ this.sign = sign; this.value = value; }
+        public Constant(bool sign, int value){ this.sign = sign; this.value = value; this.variable = false; }
 
         public override int? GetValue(){ return value; }
         public override Symbol Sum(Symbol other)

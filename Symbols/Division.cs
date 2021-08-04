@@ -6,7 +6,7 @@ namespace LSharp.Symbols
 {
     public class Division : Symbol
     {
-        public Division(){ this.sign = true; }
+        public Division(){ this.sign = true; this.variable = true; }
 
         public override int? GetValue(){ return null; }
         public override Symbol Sum(Symbol other)

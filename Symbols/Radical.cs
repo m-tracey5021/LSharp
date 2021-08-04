@@ -6,7 +6,7 @@ namespace LSharp.Symbols
 {
     public class Radical : Symbol
     {
-        public Radical(){ this.sign = true; }
+        public Radical(){ this.sign = true; this.variable = true; }
 
         public override int? GetValue(){ return null; }
         public override Symbol Sum(Symbol other)

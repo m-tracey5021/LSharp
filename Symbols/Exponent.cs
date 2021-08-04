@@ -6,7 +6,7 @@ namespace LSharp.Symbols
 {
     public class Exponent : Symbol
     {
-        public Exponent(){ this.sign = true; }
+        public Exponent(){ this.sign = true; this.variable = true; }
 
         public override int? GetValue(){ return null; }
         public override Symbol Sum(Symbol other)

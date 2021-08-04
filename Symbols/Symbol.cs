@@ -9,8 +9,7 @@ namespace LSharp.Symbols
     public abstract class Symbol
     {
         public bool sign { get; set; }
-        // public char symbol { get; set; }
-        // public int index { get; set; }
+        public bool variable { get; set; }
         public Expression expression { get; set; }
 
         // constructors
@@ -133,16 +132,43 @@ namespace LSharp.Symbols
 
             return result;
         }
-        public abstract bool CanApply(Rule rule);
-        public abstract Symbol Copy();
+        public virtual bool CanApply(Rule rule)
+        {
+            bool passed = rule.Test(this);
+            
+            if (passed)
+            {
+                if (rule.recurse)
+                {
+                    List<int> children = GetChildren();
 
+                    foreach (int child in children)
+                    {
+                        if (!expression.GetNode(child).CanApply(rule))
+                        {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+        public abstract bool TestAgainstStage(StructureStage stage);
+        public abstract Symbol Copy();
         public virtual void CopyToSubTree(Expression parentExpression)
         {
             Symbol copy = Copy();
 
 
         }
-
         public new abstract string ToString();
     }
 }

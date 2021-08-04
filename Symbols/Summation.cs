@@ -6,7 +6,7 @@ namespace LSharp.Symbols
 {
     public class Summation : Symbol
     {
-        public Summation(){ this.sign = true; }
+        public Summation(){ this.sign = true; this.variable = true; }
         
         public override int? GetValue(){ return null; }
         public override Symbol Sum(Symbol other)

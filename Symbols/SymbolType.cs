@@ -4,7 +4,11 @@ namespace LSharp.Symbols
 {
     public enum SymbolType
     {
-        Operation,
+        Summation,
+        Multiplication,
+        Division,
+        Exponent,
+        Radical,
         Variable,
         Constant
     }

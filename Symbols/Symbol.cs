@@ -10,71 +10,104 @@ namespace LSharp.Symbols
     public abstract class Symbol
     {
         public bool sign { get; set; }
-        public bool variable { get; set; }
-        public Expression expression { get; set; }
-
-        // constructors
-
-        public Symbol(){}
-        public Symbol(bool sign){ this.sign = sign; }
-
-        // methods
-
-        public virtual int GetIndex()
+        public SymbolType type { get; set; }
+        public Symbol(bool sign, SymbolType type){ this.sign = sign; this.type = type; }
+        public virtual bool IsOperation()
         {
-            return expression.GetNode(this);
+            if (type == SymbolType.Summation ||
+                    type == SymbolType.Multiplication || 
+                    type == SymbolType.Division ||
+                    type == SymbolType.Exponent ||
+                    type == SymbolType.Radical)
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
         }
-        public virtual int GetParent()
+        public virtual bool IsSummation()
         {
-            return expression.GetParent(GetIndex());
+            if (type == SymbolType.Summation)
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
         }
-        public virtual int GetParent(int depth)
+        public virtual bool IsMultiplication()
         {
-            return expression.GetParent(GetIndex(), depth);
+            if (type == SymbolType.Multiplication)
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
         }
-        public virtual List<int> GetChildren()
+        public virtual bool IsDivision()
         {
-            return expression.GetChildren(GetIndex());
+            if (type == SymbolType.Division)
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
         }
-        public virtual int GetChild(int breadth)
+        public virtual bool IsExponent()
         {
-            return expression.GetChild(GetIndex(), breadth);
+            if (type == SymbolType.Exponent)
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
         }
-        public virtual int GetChild(List<int> path)
+        public virtual bool IsRadical()
         {
-            return expression.GetChild(GetIndex(), path);
+            if (type == SymbolType.Radical)
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
         }
-
-        public abstract void Dispatch(Selector selector);
-        public abstract int? GetValue();
-        public abstract Symbol Sum(Symbol other);
-        public abstract Symbol Sum(Summation other);
-        public abstract Symbol Sum(Multiplication other);
-        public abstract Symbol Sum(Division other);
-        public abstract Symbol Sum(Exponent other);
-        public abstract Symbol Sum(Radical other);
-        public abstract Symbol Sum(Variable other);
-        public abstract Symbol Sum(Constant other);
-
+        public virtual bool IsVariable()
+        {
+            if (type == SymbolType.Variable)
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
+        }
+        public virtual bool IsConstant()
+        {
+            if (type == SymbolType.Constant)
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
+        }
         public abstract bool IsEqual(Symbol other);
-        public abstract bool IsEqual(Summation other);
-        public abstract bool IsEqual(Multiplication other);
-        public abstract bool IsEqual(Division other);
-        public abstract bool IsEqual(Exponent other);
-        public abstract bool IsEqual(Radical other);
-        public abstract bool IsEqual(Variable other);
-        public abstract bool IsEqual(Constant other);
-        public abstract Expression SumLikeTerm(Symbol other);
-        // public abstract Expression SumLikeTerm(Summation other);
-        // public abstract Expression SumLikeTerm(Multiplication other);
-        // public abstract Expression SumLikeTerm(Division other);
-        // public abstract Expression SumLikeTerm(Exponent other);
-        // public abstract Expression SumLikeTerm(Radical other);
-        // public abstract Expression SumLikeTerm(Variable other);
-        // public abstract Expression SumLikeTerm(Constant other);
-        public abstract bool TestAgainstStage(StructureStage stage);
+        public abstract int? GetValue();
+        public abstract string GetVariable();
         public abstract Symbol Copy();
-
-        public new abstract string ToString();
+        
     }
 }

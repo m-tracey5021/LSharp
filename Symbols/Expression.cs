@@ -82,7 +82,7 @@ namespace LSharp.Symbols
             {
                 AddToMap(node);
 
-                node.expression = this;
+                // node.expression = this;
                 // node.index = 0;
 
                 root = 0;
@@ -100,7 +100,7 @@ namespace LSharp.Symbols
             {
                 AddToMap(child);
 
-                child.expression = this;
+                // child.expression = this;
                 // child.index = 0;
 
                 root = 0;
@@ -115,7 +115,7 @@ namespace LSharp.Symbols
 
                 int childIndex = tree.Count - 1; 
 
-                child.expression = this;
+                // child.expression = this;
                 // child.index = childIndex;
 
                 parentMap[childIndex] = parentIndex;
@@ -139,6 +139,17 @@ namespace LSharp.Symbols
                 childMap.Add(offset, children.childMap[child.Key].Select(x => x + offset).ToList());
 
                 AddToMap(child.Value);
+            }
+        }
+        public bool IsEqual(int first, int second)
+        {
+            if (GetNode(first).IsEqual(GetNode(second)))
+            {
+                
+            }
+            if ()
+            {
+
             }
         }
         public bool IsEqual(Expression other)
@@ -225,12 +236,81 @@ namespace LSharp.Symbols
 
         public Expression SumLikeTerms(int first, int second)
         {
-            SumLikeTerm selector = new SumLikeTerm(this);
+            List<int> firstTerms = GetTerms(first);
 
-            GetNode(first).Dispatch(selector);
-            GetNode(second).Dispatch(selector);
+            List<int> secondTerms = GetTerms(second);
 
-            return selector.Execute();
+
+
+            Expression result = new Expression();
+
+            if (firstTerms.Count == secondTerms.Count)
+            {
+                for (int i = 0; i < firstTerms.Count; i ++)
+                {
+                    if (!parent.GetNode(firstTerms[i]).IsEqual(parent.GetNode(secondTerms[i])))
+                    {
+                        return null;
+                    }
+                }
+                Symbol multiplication = new Multiplication();
+
+                Symbol coefficient = new Constant(true, totalSum);
+
+                result.AddNode(multiplication);
+
+                if (totalSum > 1)
+                {
+                    result.AddNode(multiplication, coefficient);
+                }
+                foreach (int term in firstTerms)
+                {
+                    result.AddNode(multiplication, parent.CopySubTree(term));
+                }
+                return result;
+            }
+            else
+            {
+                return null;
+            }  
+        }
+        public int? GetCoefficient(int index)
+        {
+            if (GetNode(index).IsMultiplication())
+            {
+                foreach (int child in GetChildren(index))
+                {
+                    if (GetNode(child).IsConstant())
+                    {
+                        return GetNode(index).GetValue();
+                    }
+                }
+                return null;
+            }
+            else 
+            {
+                return null;
+            }
+        }
+        public List<int> GetTerms(int index)
+        {
+            List<int> terms = new List<int>();
+
+            if (GetNode(index).IsMultiplication())
+            {
+                foreach (int child in GetChildren(index))
+                {
+                    if (!GetNode(child).IsConstant())
+                    {
+                        terms.Add(child);
+                    }
+                }
+                return terms;
+            }
+            else 
+            {
+                return null;
+            }
         }
 
         public override string ToString()

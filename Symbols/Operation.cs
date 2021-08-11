@@ -5,17 +5,16 @@ using LSharp.Selectors;
 
 namespace LSharp.Symbols
 {
-    public class Variable : Symbol
+    public class Operation : Symbol
     {
-        public char value { get; set; }
-        public Variable(bool sign, char value) : base(sign, SymbolType.Variable){ this.value = value; }
+        public Operation(bool sign, SymbolType type) : base(sign, type){ }
         public override int? GetValue()
         {
             return null;
         }
         public override Symbol Copy()
         {
-            return new Variable(sign, value);
+            return new Operation(sign, type);
         }
     }
 }

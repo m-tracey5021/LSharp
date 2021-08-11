@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using LSharp.Selectors;
 using LSharp.Rules;
 
 
@@ -43,6 +44,8 @@ namespace LSharp.Symbols
         {
             return expression.GetChild(GetIndex(), path);
         }
+
+        public abstract void Dispatch(Selector selector);
         public abstract int? GetValue();
         public abstract Symbol Sum(Symbol other);
         public abstract Symbol Sum(Summation other);
@@ -61,14 +64,17 @@ namespace LSharp.Symbols
         public abstract bool IsEqual(Radical other);
         public abstract bool IsEqual(Variable other);
         public abstract bool IsEqual(Constant other);
+        public abstract Expression SumLikeTerm(Symbol other);
+        // public abstract Expression SumLikeTerm(Summation other);
+        // public abstract Expression SumLikeTerm(Multiplication other);
+        // public abstract Expression SumLikeTerm(Division other);
+        // public abstract Expression SumLikeTerm(Exponent other);
+        // public abstract Expression SumLikeTerm(Radical other);
+        // public abstract Expression SumLikeTerm(Variable other);
+        // public abstract Expression SumLikeTerm(Constant other);
         public abstract bool TestAgainstStage(StructureStage stage);
         public abstract Symbol Copy();
-        public virtual void CopyToSubTree(Expression parentExpression)
-        {
-            Symbol copy = Copy();
 
-
-        }
         public new abstract string ToString();
     }
 }

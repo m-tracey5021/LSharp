@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using LSharp.Selectors;
 
 namespace LSharp.Symbols
 {
@@ -220,6 +221,16 @@ namespace LSharp.Symbols
                 CopySubTree(childIndex, copiedExpression.GetNode(childCopy), ref copiedExpression);
             }
             return copiedExpression;
+        }
+
+        public Expression SumLikeTerms(int first, int second)
+        {
+            SumLikeTerm selector = new SumLikeTerm(this);
+
+            GetNode(first).Dispatch(selector);
+            GetNode(second).Dispatch(selector);
+
+            return selector.Execute();
         }
 
         public override string ToString()

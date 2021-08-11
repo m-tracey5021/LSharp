@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using LSharp.Rules;
+using LSharp.Selectors;
 
 namespace LSharp.Symbols
 {
@@ -8,6 +9,24 @@ namespace LSharp.Symbols
     {
         public Multiplication(){ this.sign = true; this.variable = true; }
         
+        public List<int> RemoveCoefficient()
+        {
+            List<int> duplicates = new List<int>();
+
+            foreach (int child in GetChildren())
+            {
+                SelectCoefficient selector = new SelectCoefficient();
+
+                expression.GetNode(child).Dispatch(selector);
+
+                if (!selector.hasCoefficient)
+                {
+                    duplicates.Add(child);
+                }
+            }
+            return duplicates;
+        }
+        public override void Dispatch(Selector selector){ selector.Select(this); }
         public override int? GetValue(){ return null; }
         public override Symbol Sum(Symbol other)
         {
@@ -68,6 +87,14 @@ namespace LSharp.Symbols
         public override bool IsEqual(Radical other){ return false; }
         public override bool IsEqual(Variable other){ return false; }
         public override bool IsEqual(Constant other){ return false; }
+        public override Expression SumLikeTerm(Symbol other)
+        {
+            SumLikeTerm select = new SumLikeTerm(expression);
+
+            other.Dispatch(select);
+
+            return select.result;
+        }
         public override bool TestAgainstStage(StructureStage stage)
         {
             if (stage.type == '*' || stage.type == 'x')

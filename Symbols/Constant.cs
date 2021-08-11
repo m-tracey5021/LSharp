@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using LSharp.Rules;
+using LSharp.Selectors;
 
 namespace LSharp.Symbols
 {
@@ -10,6 +11,7 @@ namespace LSharp.Symbols
         public Constant(){}
         public Constant(bool sign, int value){ this.sign = sign; this.value = value; this.variable = false; }
 
+        public override void Dispatch(Selector selector){ selector.Select(this); }
         public override int? GetValue(){ return value; }
         public override Symbol Sum(Symbol other)
         {
@@ -61,6 +63,7 @@ namespace LSharp.Symbols
                 return false;
             }
         }
+        public override Expression SumLikeTerm(Symbol other){ return null; }
 
         public override bool TestAgainstStage(StructureStage stage)
         {

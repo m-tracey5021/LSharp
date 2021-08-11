@@ -10,8 +10,19 @@ namespace LSharp.Rules
         public bool recurse { get; set; }
         public Structure structure { get; set; }
         public Rule(Structure structure){ this.stage = 0; this.structure = structure; }
-        public abstract bool AppliesTo(Symbol symbol);
-        public abstract Expression Apply(Symbol symbol);
+        public virtual bool Test(Symbol symbol)
+        {
+            if (structure.At(stage).type.ToString() == symbol.GetValue())
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        public abstract bool AppliesTo(Expression expression, int index);
+        public abstract Expression Apply(Expression expression, int index);
         
         
     }

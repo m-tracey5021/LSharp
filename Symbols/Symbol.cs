@@ -1,9 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using LSharp.Selectors;
-using LSharp.Rules;
-
 
 namespace LSharp.Symbols
 {
@@ -104,9 +100,9 @@ namespace LSharp.Symbols
                 return false;
             }
         }
-        public abstract bool IsEqual(Symbol other);
-        public abstract int? GetValue();
-        public abstract string GetVariable();
+        public abstract string GetValue();
+        public abstract int? GetNumericValue();
+        
         public abstract Symbol Copy();
         
     }

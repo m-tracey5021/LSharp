@@ -15,9 +15,9 @@ namespace LSharp.Rules
         {
 
         }
-        public override bool AppliesTo(Symbol symbol)
+        public override bool AppliesTo(Expression expression, int index)
         {
-            bool passed = symbol.TestAgainstStage(structure.At(stage));
+            bool passed = Test(expression.GetNode(index));
 
             if (passed)
             {
@@ -25,9 +25,9 @@ namespace LSharp.Rules
                 {
                     stage ++;
 
-                    foreach (int child in symbol.GetChildren())
+                    foreach (int child in expression.GetChildren(index))
                     {
-                        if (!AppliesTo(symbol.expression.GetNode(child)))
+                        if (!AppliesTo(expression, child))
                         {
                             return false;
                         }
@@ -47,23 +47,22 @@ namespace LSharp.Rules
             }
         
         }
-        public override Expression Apply(Symbol symbol)
+        public override Expression Apply(Expression expression, int index)
         {
-            Expression expression = symbol.expression;
             Expression result = new Expression();
 
-            Symbol division = new Division();
+            Symbol division = new Operation(true, SymbolType.Division);
 
-            Symbol exp1 = new Exponent();
-            Symbol exp2 = new Exponent();
+            Symbol exp1 = new Operation(true, SymbolType.Exponent);
+            Symbol exp2 = new Operation(true, SymbolType.Exponent);
 
-            Symbol a = expression.GetNode(symbol.GetChild(new List<int> { 0, 0 }));
+            Symbol a = expression.GetNode(expression.GetChild(index, new List<int> { 0, 0 }));
 
-            Symbol b = expression.GetNode(symbol.GetChild(new List<int> { 0, 1 }));
+            Symbol b = expression.GetNode(expression.GetChild(index, new List<int> { 0, 1 }));
 
-            Symbol m1 = expression.GetNode(symbol.GetChild(1)).Copy();
+            Symbol m1 = expression.GetNode(expression.GetChild(index, 1)).Copy();
 
-            Symbol m2 = expression.GetNode(symbol.GetChild(1)).Copy();
+            Symbol m2 = expression.GetNode(expression.GetChild(index, 1)).Copy();
 
             result.AddNode(division);
 

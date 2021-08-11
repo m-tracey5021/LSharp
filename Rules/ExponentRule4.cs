@@ -15,9 +15,9 @@ namespace LSharp.Rules
         {
 
         }
-        public override bool AppliesTo(Symbol symbol)
+        public override bool AppliesTo(Expression expression, int index)
         {
-            bool passed = symbol.TestAgainstStage(structure.At(stage));
+            bool passed = Test(expression.GetNode(index));
 
             if (passed)
             {
@@ -25,9 +25,9 @@ namespace LSharp.Rules
                 {
                     stage ++;
 
-                    foreach (int child in symbol.GetChildren())
+                    foreach (int child in expression.GetChildren(index))
                     {
-                        if (!AppliesTo(symbol.expression.GetNode(child)))
+                        if (!AppliesTo(expression, child))
                         {
                             return false;
                         }
@@ -47,6 +47,6 @@ namespace LSharp.Rules
             }
         
         }
-        public override Expression Apply(Symbol symbol){ return null; }
+        public override Expression Apply(Expression expression, int index){ return null; }
     }
 }

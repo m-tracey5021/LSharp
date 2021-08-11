@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using LSharp.Rules;
-using LSharp.Selectors;
 
 namespace LSharp.Symbols
 {
@@ -9,24 +7,13 @@ namespace LSharp.Symbols
     {
         public int value { get; set; }
         public Constant(bool sign, int value) : base(sign, SymbolType.Constant){ this.value = value; }
-        public override bool IsEqual(Symbol other)
+        public override string GetValue()
         {
-            if (type == other.type && value == other.GetValue())
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return value.ToString();
         }
-        public override int? GetValue()
+        public override int? GetNumericValue()
         {
             return value;
-        }
-        public override string GetVariable()
-        {
-            return 
         }
         public override Symbol Copy()
         {

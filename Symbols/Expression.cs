@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using LSharp.Selectors;
 
 namespace LSharp.Symbols
 {
@@ -143,13 +142,31 @@ namespace LSharp.Symbols
         }
         public bool IsEqual(int first, int second)
         {
-            if (GetNode(first).IsEqual(GetNode(second)))
+            if (GetNode(first).GetValue() == GetNode(second).GetValue())
             {
-                
-            }
-            if ()
-            {
+                List<int> firstChildren = GetChildren(first);
 
+                List<int> secondChildren = GetChildren(second);
+
+                if (firstChildren.Count != secondChildren.Count)
+                {
+                    return false;
+                }
+                else
+                {
+                    for (int i = 0; i < firstChildren.Count; i ++)
+                    {
+                        if (!IsEqual(firstChildren[i], secondChildren[i]))
+                        {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            }
+            else
+            {
+                return false;
             }
         }
         public bool IsEqual(Expression other)
@@ -160,7 +177,7 @@ namespace LSharp.Symbols
                 {
                     for (int i = 0; i < tree.Count; i ++)
                     {
-                        if (!tree[i].IsEqual(other.tree[i]))
+                        if (tree[i].GetValue() != other.tree[i].GetValue())
                         {
                             return false;
                         }
@@ -188,7 +205,7 @@ namespace LSharp.Symbols
             {
                 Symbol copy = symbol.Copy();
 
-                copy.expression = copiedExpression;
+                // copy.expression = copiedExpression;
 
                 copiedExpression.AddToMap(copy);
             }
@@ -201,7 +218,7 @@ namespace LSharp.Symbols
 
             Symbol rootCopy = GetNode(index).Copy();
 
-            rootCopy.expression = copiedExpression;
+            // rootCopy.expression = copiedExpression;
 
             copiedExpression.AddNode(rootCopy);
 
@@ -240,7 +257,7 @@ namespace LSharp.Symbols
 
             List<int> secondTerms = GetTerms(second);
 
-
+            int totalSum = GetCoefficient(first) + GetCoefficient(second);
 
             Expression result = new Expression();
 
@@ -248,12 +265,12 @@ namespace LSharp.Symbols
             {
                 for (int i = 0; i < firstTerms.Count; i ++)
                 {
-                    if (!parent.GetNode(firstTerms[i]).IsEqual(parent.GetNode(secondTerms[i])))
+                    if (!IsEqual(firstTerms[i], secondTerms[i]))
                     {
                         return null;
                     }
                 }
-                Symbol multiplication = new Multiplication();
+                Symbol multiplication = new Operation(true, SymbolType.Multiplication);
 
                 Symbol coefficient = new Constant(true, totalSum);
 
@@ -265,7 +282,7 @@ namespace LSharp.Symbols
                 }
                 foreach (int term in firstTerms)
                 {
-                    result.AddNode(multiplication, parent.CopySubTree(term));
+                    result.AddNode(multiplication, CopySubTree(term));
                 }
                 return result;
             }
@@ -274,7 +291,7 @@ namespace LSharp.Symbols
                 return null;
             }  
         }
-        public int? GetCoefficient(int index)
+        public int GetCoefficient(int index)
         {
             if (GetNode(index).IsMultiplication())
             {
@@ -282,14 +299,18 @@ namespace LSharp.Symbols
                 {
                     if (GetNode(child).IsConstant())
                     {
-                        return GetNode(index).GetValue();
+                        if (GetNode(index).GetNumericValue() != null)
+                        {
+                            return (int) GetNode(index).GetNumericValue();
+                        }
+                        
                     }
                 }
-                return null;
+                return 1;
             }
             else 
             {
-                return null;
+                return 1;
             }
         }
         public List<int> GetTerms(int index)

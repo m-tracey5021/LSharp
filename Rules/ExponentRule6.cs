@@ -57,20 +57,19 @@ namespace LSharp.Rules
                 return false;
             }
         }
-        public override Expression Apply(Symbol symbol)
+        public override Expression Apply(Expression expression, int index)
         {
-            Expression expression = symbol.expression;
             Expression result = new Expression();
 
-            Symbol div = new Division();
+            Symbol div = new Operation(true, SymbolType.Division);
 
             Symbol one = new Constant(true, 1);
 
-            Symbol exp = new Exponent();
+            Symbol exp = new Operation(true, SymbolType.Exponent);
 
-            Symbol a = expression.GetNode(symbol.GetChild(0)).Copy();
+            Symbol a = expression.GetNode(expression.GetChild(index, 0)).Copy();
 
-            Symbol n = expression.GetNode(symbol.GetChild(1)).Copy();
+            Symbol n = expression.GetNode(expression.GetChild(index, 1)).Copy();
 
             result.AddNode(div);
 

@@ -102,8 +102,9 @@ namespace LSharp.Symbols
         }
         public abstract string GetValue();
         public abstract int? GetNumericValue();
-        
         public abstract Symbol Copy();
+
+        public abstract new string ToString();
         
     }
 }

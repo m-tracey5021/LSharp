@@ -16,9 +16,9 @@ namespace LSharp.Rules
         {
 
         }
-        public override bool AppliesTo(Symbol symbol)
+        public override bool AppliesTo(Expression expression, int index)
         {
-            bool passed = symbol.TestAgainstStage(structure.At(stage));
+            bool passed = Test(expression.GetNode(index));
 
             if (passed)
             {
@@ -26,9 +26,9 @@ namespace LSharp.Rules
                 {
                     stage ++;
 
-                    foreach (int child in symbol.GetChildren())
+                    foreach (int child in expression.GetChildren(index))
                     {
-                        if (!AppliesTo(symbol.expression.GetNode(child)))
+                        if (!AppliesTo(expression, child))
                         {
                             return false;
                         }
@@ -37,7 +37,7 @@ namespace LSharp.Rules
                 }
                 else if (stage == 2)
                 {
-                    variableIndex = symbol.GetIndex();
+                    variableIndex = index;
 
                     stage ++;
 
@@ -45,7 +45,7 @@ namespace LSharp.Rules
                 }
                 else if (stage == 5)
                 {
-                    if (!symbol.IsEqual(symbol.expression.GetNode(variableIndex)))
+                    if (!expression.IsEqualSubTree(index, variableIndex))
                     {
                         return false;
                     }
@@ -65,20 +65,19 @@ namespace LSharp.Rules
                 return false;
             }
         }
-        public override Expression Apply(Symbol symbol)
+        public override Expression Apply(Expression expression, int index)
         {
-            Expression expression = symbol.expression;
             Expression result = new Expression();
 
-            Symbol exponent = new Exponent();
+            Symbol exponent = new Operation(true, SymbolType.Exponent);
 
-            Symbol addition = new Summation();
+            Symbol addition = new Operation(true, SymbolType.Summation);
 
-            Symbol a = expression.GetNode(symbol.GetChild(new List<int> { 0, 0 }));
+            Symbol a = expression.GetNode(expression.GetChild(index, new List<int> { 0, 0 }));
 
-            Symbol m = expression.GetNode(symbol.GetChild(new List<int> { 0, 1 }));
+            Symbol m = expression.GetNode(expression.GetChild(index, new List<int> { 0, 1 }));
 
-            Symbol n = expression.GetNode(symbol.GetChild(new List<int> { 1, 1 }));
+            Symbol n = expression.GetNode(expression.GetChild(index, new List<int> { 1, 1 }));
 
             result.AddNode(exponent);
 

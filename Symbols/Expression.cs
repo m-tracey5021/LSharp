@@ -18,6 +18,10 @@ namespace LSharp.Symbols
             parentMap = new Dictionary<int, int>();
             childMap = new Dictionary<int, List<int>>();
         }
+        public int? GetNumericValue(int index)
+        {
+            return tree[index].GetNumericValue();
+        }
         public Symbol GetNode(int index)
         {
             return tree[index];
@@ -140,35 +144,6 @@ namespace LSharp.Symbols
                 AddToMap(child.Value);
             }
         }
-        public bool IsEqual(int first, int second)
-        {
-            if (GetNode(first).GetValue() == GetNode(second).GetValue())
-            {
-                List<int> firstChildren = GetChildren(first);
-
-                List<int> secondChildren = GetChildren(second);
-
-                if (firstChildren.Count != secondChildren.Count)
-                {
-                    return false;
-                }
-                else
-                {
-                    for (int i = 0; i < firstChildren.Count; i ++)
-                    {
-                        if (!IsEqual(firstChildren[i], secondChildren[i]))
-                        {
-                            return false;
-                        }
-                    }
-                    return true;
-                }
-            }
-            else
-            {
-                return false;
-            }
-        }
         public bool IsEqual(Expression other)
         {
             if (parentMap == other.parentMap && childMap == other.childMap)
@@ -187,6 +162,35 @@ namespace LSharp.Symbols
                 else
                 {
                     return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+        public bool IsEqualSubTree(int first, int second)
+        {
+            if (GetNode(first).GetValue() == GetNode(second).GetValue())
+            {
+                List<int> firstChildren = GetChildren(first);
+
+                List<int> secondChildren = GetChildren(second);
+
+                if (firstChildren.Count != secondChildren.Count)
+                {
+                    return false;
+                }
+                else
+                {
+                    for (int i = 0; i < firstChildren.Count; i ++)
+                    {
+                        if (!IsEqualSubTree(firstChildren[i], secondChildren[i]))
+                        {
+                            return false;
+                        }
+                    }
+                    return true;
                 }
             }
             else
@@ -265,7 +269,7 @@ namespace LSharp.Symbols
             {
                 for (int i = 0; i < firstTerms.Count; i ++)
                 {
-                    if (!IsEqual(firstTerms[i], secondTerms[i]))
+                    if (!IsEqualSubTree(firstTerms[i], secondTerms[i]))
                     {
                         return null;
                     }

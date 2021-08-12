@@ -18,15 +18,15 @@ namespace LSharp.Rules
             this.totalSum = 0;
         }
 
-        public override bool AppliesTo(Symbol symbol)
+        public override bool AppliesTo(Expression expression, int index)
         {
-            bool passed = symbol.TestAgainstStage(structure.At(stage));
+            bool passed = Test(expression.GetNode(index));
 
             if (passed)
             {
                 if (stage == 3)
                 {
-                    variableIndex = symbol.GetIndex();
+                    variableIndex = index;
 
                     stage ++;
 
@@ -34,7 +34,7 @@ namespace LSharp.Rules
                 }
                 else if (stage == 6)
                 {
-                    if (!symbol.IsEqual(symbol.expression.GetNode(variableIndex)))
+                    if (!expression.IsEqualSubTree(index, variableIndex))
                     {
                         return false;
                     }
@@ -46,9 +46,9 @@ namespace LSharp.Rules
                 {
                     stage ++;
 
-                    foreach (int child in symbol.GetChildren())
+                    foreach (int child in expression.GetChildren(index))
                     {
-                        if (!AppliesTo(symbol.expression.GetNode(child)))
+                        if (!AppliesTo(expression, child))
                         {
                             return false;
                         }
@@ -57,9 +57,9 @@ namespace LSharp.Rules
                 }
                 else
                 {
-                    if (symbol.GetValue() != null)
+                    if (expression.GetNumericValue(index) != null)
                     {
-                        totalSum += (int) symbol.GetValue();
+                        totalSum += (int) expression.GetNumericValue(index);
                     }
                     stage ++;
                     
@@ -71,22 +71,22 @@ namespace LSharp.Rules
                 return false;
             }
         }
-        public override Expression Apply(Symbol symbol)
+        public override Expression Apply(Expression expression, int index)
         {
-            Expression expression = new Expression();
+            Expression result = new Expression();
 
-            Symbol mul = new Multiplication();
+            Symbol mul = new Operation(true, SymbolType.Multiplication);
 
             Symbol total = new Constant(true, totalSum);
 
-            Expression variable = symbol.expression.CopySubTree(variableIndex);
+            Expression variable = expression.CopySubTree(variableIndex);
 
-            expression.AddNode(mul);
+            result.AddNode(mul);
 
-            expression.AddNode(mul, total);
-            expression.AddNode(mul, variable);
+            result.AddNode(mul, total);
+            result.AddNode(mul, variable);
 
-            return expression;
+            return result;
         }
     }
 }

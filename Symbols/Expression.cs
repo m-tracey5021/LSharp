@@ -22,6 +22,10 @@ namespace LSharp.Symbols
         {
             return tree[index].GetNumericValue();
         }
+        public int GetRoot()
+        {
+            return root;
+        }
         public Symbol GetNode(int index)
         {
             return tree[index];
@@ -220,37 +224,29 @@ namespace LSharp.Symbols
         {
             Expression copiedExpression = new Expression();
 
-            Symbol rootCopy = GetNode(index).Copy();
+            Symbol copiedRoot = GetNode(index).Copy();
 
-            // rootCopy.expression = copiedExpression;
+            copiedExpression.AddNode(copiedRoot);
 
-            copiedExpression.AddNode(rootCopy);
-
-            List<int> children = childMap[index];
-
-            foreach (int childIndex in children)
+            foreach (int child in childMap[index])
             {
-                Symbol childCopy = GetNode(childIndex).Copy();
+                Symbol copiedChild = GetNode(child).Copy();
 
-                copiedExpression.AddNode(rootCopy, childCopy);
+                copiedExpression.AddNode(copiedRoot, copiedChild);  
 
-                CopySubTree(childIndex, copiedExpression.GetNode(childCopy), ref copiedExpression);
+                CopySubTree(child, copiedChild, ref copiedExpression);              
             }
             return copiedExpression;
         }
-        public Expression CopySubTree(int indexInParent, int indexInCopy, ref Expression copiedExpression)
+        public Expression CopySubTree(int parent, Symbol copiedParent, ref Expression copiedExpression)
         {
-            Symbol parentCopy = copiedExpression.GetNode(indexInCopy);
-
-            List<int> children = childMap[indexInParent];
-
-            foreach (int childIndex in children)
+            foreach (int child in childMap[parent])
             {
-                Symbol childCopy = GetNode(childIndex).Copy();
+                Symbol copiedChild = GetNode(child).Copy();
 
-                copiedExpression.AddNode(parentCopy, childCopy);
+                copiedExpression.AddNode(copiedParent, copiedChild);
 
-                CopySubTree(childIndex, copiedExpression.GetNode(childCopy), ref copiedExpression);
+                CopySubTree(child, copiedChild, ref copiedExpression);
             }
             return copiedExpression;
         }
@@ -337,16 +333,50 @@ namespace LSharp.Symbols
                 return null;
             }
         }
+        public string ToString(string result, int index)
+        {
+            Symbol symbol = GetNode(index);
+
+            string symbolStr = symbol.ToString();
+
+            if (symbol.IsOperation())
+            {
+                result += '(';
+
+                List<int> children = childMap[index];
+
+                for (int i = 0; i < children.Count; i ++)
+                {
+                    if (i == 0)
+                    {
+                        result = ToString(result, children[i]);
+                    }
+                    else
+                    {
+                        result = ToString(result + symbolStr, children[i]);
+                    }
+                }
+                result += ')';
+            }
+            else
+            {
+                result += symbolStr;
+            }
+            return result;
+        }
 
         public override string ToString()
         {
             string result = "";
 
-            foreach (Symbol symbol in tree.Values)
+            if (tree.Count == 0)
             {
-                result += symbol.ToString();
+                return result;
             }
-            return result;
+            else
+            {
+                return ToString(result, root);
+            }
         }
     }
 }

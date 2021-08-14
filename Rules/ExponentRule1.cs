@@ -45,7 +45,7 @@ namespace LSharp.Rules
                 }
                 else if (stage == 5)
                 {
-                    if (!expression.IsEqualSubTree(index, variableIndex))
+                    if (!expression.IsEqual(index, variableIndex))
                     {
                         return false;
                     }

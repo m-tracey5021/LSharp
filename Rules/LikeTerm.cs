@@ -34,7 +34,7 @@ namespace LSharp.Rules
                 }
                 else if (stage == 6)
                 {
-                    if (!expression.IsEqualSubTree(index, variableIndex))
+                    if (!expression.IsEqual(index, variableIndex))
                     {
                         return false;
                     }
@@ -84,7 +84,7 @@ namespace LSharp.Rules
             result.AddNode(mul);
 
             result.AddNode(mul, total);
-            result.AddNode(mul, variable);
+            // result.AddNode(mul, variable);
 
             return result;
         }

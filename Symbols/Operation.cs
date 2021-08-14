@@ -5,7 +5,7 @@ namespace LSharp.Symbols
 {
     public class Operation : Symbol
     {
-        private readonly Dictionary<SymbolType, char> symbolMap = new Dictionary<SymbolType, char>()
+        private Dictionary<SymbolType, char> symbolMap = new Dictionary<SymbolType, char>()
         {
             { SymbolType.Summation, '+' },
             { SymbolType.Multiplication, '*' },
@@ -21,6 +21,14 @@ namespace LSharp.Symbols
         public override int? GetNumericValue()
         {
             return null;
+        }
+        public override void SetValue(char value)
+        {
+            symbolMap[type] = value;
+        }
+        public override void SetNumericValue(int value)
+        {
+            
         }
         public override Symbol Copy()
         {

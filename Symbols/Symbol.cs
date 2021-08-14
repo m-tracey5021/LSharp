@@ -102,6 +102,8 @@ namespace LSharp.Symbols
         }
         public abstract string GetValue();
         public abstract int? GetNumericValue();
+        public abstract void SetValue(char value);
+        public abstract void SetNumericValue(int value);
         public abstract Symbol Copy();
 
         public override string ToString()

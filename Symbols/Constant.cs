@@ -15,6 +15,14 @@ namespace LSharp.Symbols
         {
             return value;
         }
+        public override void SetValue(char value)
+        {
+            
+        }
+        public override void SetNumericValue(int value)
+        {
+            this.value = value;
+        }
         public override Symbol Copy()
         {
             return new Constant(sign, value);

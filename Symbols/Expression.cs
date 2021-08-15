@@ -174,6 +174,50 @@ namespace LSharp.Symbols
                 AddNode(transfer, expression, child);
             }
         }
+        public Expression Sum()
+        {
+            throw new NotImplementedException();
+        }
+        public Expression Multiply(int lhs, int rhs)
+        {
+            Expression result = new Expression();
+
+            Symbol mul = new Operation(true, SymbolType.Multiplication);
+
+            result.AddNode(mul);
+
+            result.AddNode(mul, CopySubTree(lhs));
+
+            result.AddNode(mul, CopySubTree(rhs));
+
+            return result;
+        }
+        public Expression Multiply(List<int> children)
+        {
+            Expression result = new Expression();
+
+            Symbol mul = new Operation(true, SymbolType.Multiplication);
+
+            result.AddNode(mul);
+
+            foreach (int child in children)
+            {
+                result.AddNode(mul, CopySubTree(child));
+            }
+            return result;
+        }
+        public Expression Divide()
+        {
+            throw new NotImplementedException();
+        }
+        public Expression Raise()
+        {
+            throw new NotImplementedException();
+        }
+        public Expression Root()
+        {
+            throw new NotImplementedException();
+        }
         public bool IsEqual(int first, int second)
         {
             if (GetNode(first).GetValue() == GetNode(second).GetValue())
@@ -272,95 +316,6 @@ namespace LSharp.Symbols
             }
             return copiedExpression;
         }
-        public Expression SumLikeTerms(int index)
-        {
-            Expression result = new Expression();
-
-            Symbol add = new Operation(true, SymbolType.Summation);
-
-            result.AddNode(add);
-
-            int totalSum = 0;
-
-            if (GetNode(index).IsSummation())
-            {
-                List<int> children = GetChildren(index);
-
-                for (int i = 0; i < children.Count; i ++)
-                {
-                    int compared = children[i];
-
-                    totalSum += GetCoefficient(children[i]);
-
-                    for (int j = i + 1; j < children.Count; j ++)
-                    {
-                        if (IsLikeTerm(compared, children[j]))
-                        {
-                            totalSum += GetCoefficient(children[j]);
-                        }
-                    }
-                    Expression summed = CopySubTree(children[i]);
-
-                    if (totalSum > 1)
-                    {
-                        summed.SetCoefficient(0, totalSum);    
-                    }
-
-                    result.AddNode(add, summed);
-                } 
-                return result;
-            }
-            else
-            {
-                return this;
-            }
-        }
-        public Expression SumLikeTerms(int first, int second)
-        {
-            if (GetNode(first).IsMultiplication() && GetNode(second).IsMultiplication())
-            {
-                int totalSum = GetCoefficient(first) + GetCoefficient(second);
-
-                List<int> firstTerms = GetTerms(first);
-
-                List<int> secondTerms = GetTerms(second);
-
-                if (firstTerms.Count != secondTerms.Count)
-                {
-                    return null;
-                }
-                else
-                {
-                    Expression result = new Expression();
-
-                    Symbol mul = new Operation(true, SymbolType.Multiplication);
-
-                    Symbol coefficient = new Constant(true, totalSum);
-
-                    result.AddNode(mul);
-
-                    result.AddNode(mul, coefficient);
-
-                    for (int i = 0; i < firstTerms.Count; i ++)
-                    {
-                        if (!IsEqual(firstTerms[i], secondTerms[i]))
-                        {
-                            return null;
-                        }
-                        else
-                        {
-                            // result.AddNode(mul, CopySubTree(firstTerms[i]));
-                            result.AddNode(mul, CopySubTree(firstTerms[i]));
-                        }
-                    }
-                    return result;
-                }
-            }
-            else
-            {
-                return null;
-            }
-        }
         public bool IsLikeTerm(int first, int second)
         {
             if (GetNode(first).IsMultiplication() && GetNode(second).IsMultiplication())
@@ -388,6 +343,107 @@ namespace LSharp.Symbols
             else
             {
                 return false;
+            }
+        }
+        public Expression SumLikeTerms(int index)
+        {
+            Expression result = new Expression();
+
+            Symbol add = new Operation(true, SymbolType.Summation);
+
+            result.AddNode(add);
+
+            int totalSum = 0;
+
+            if (GetNode(index).IsSummation())
+            {
+                List<int> children = GetChildren(index);
+
+                List<int> visited = new List<int>();
+
+                for (int i = 0; i < children.Count; i ++)
+                {
+                    if (!visited.Contains(i))
+                    {
+                        int compared = children[i];
+
+                        visited.Add(i);
+
+                        totalSum += GetCoefficient(children[i]);
+
+                        for (int j = i + 1; j < children.Count; j ++)
+                        {
+                            if (!visited.Contains(j))
+                            {
+                                if (IsLikeTerm(compared, children[j]))
+                                {
+                                    visited.Add(j);
+
+                                    totalSum += GetCoefficient(children[j]);
+                                }
+                            }
+                        }
+                        Expression summed = CopySubTree(children[i]);
+
+                        if (totalSum > 1)
+                        {
+                            summed.SetCoefficient(0, totalSum);    
+                        }
+
+                        result.AddNode(add, summed);
+                    }
+                    
+                } 
+                return result;
+            }
+            else
+            {
+                return this;
+            }
+        }
+        public Expression Distribute(List<int> sums)
+        {
+            Dictionary<int, int> sumMap = new Dictionary<int, int>();
+
+            foreach (int sum in sums)
+            {
+                sumMap.Add(sum, 0);
+            }
+            Expression result = new Expression();
+
+            Symbol add = new Operation(true, SymbolType.Multiplication);
+
+            result.AddNode(add);
+
+            int indexToIncrement = 0;
+
+            while (true)
+            {
+                List<int> toMultiply = new List<int>();
+
+                foreach (KeyValuePair<int, int> entry in sumMap)
+                {
+                    toMultiply.Add(GetChildren(entry.Key)[entry.Value]);
+                }
+                Expression mul = Multiply(toMultiply);
+
+                result.AddNode(add, mul);
+            }
+        }
+        public Expression Distribute(int index)
+        {
+            if (GetNode(index).IsMultiplication())
+            {
+                foreach (int child in GetChildren(index))
+                {
+                    if (GetNode(child).IsSummation())
+                    {
+
+                    }
+                    {
+
+                    }
+                }
             }
         }
         public int GetCoefficient(int index)

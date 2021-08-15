@@ -110,6 +110,5 @@ namespace LSharp.Symbols
         {
             return GetValue();
         }
-        
     }
 }

@@ -401,49 +401,95 @@ namespace LSharp.Symbols
                 return this;
             }
         }
-        public Expression Distribute(List<int> sums)
+        // public Expression Distribute(List<int> sums)
+        // {
+        //     Expression result = new Expression();
+
+        //     Symbol add = new Operation(true, SymbolType.Multiplication);
+
+        //     result.AddNode(add);
+
+        //     Dictionary<int, int> sumMap = new Dictionary<int, int>();
+
+        //     foreach (int sum in sums)
+        //     {
+        //         sumMap.Add(sum, 0);
+        //     }
+        //     while (true)
+        //     {
+        //         int sumIteration = 0;
+
+        //         int sumChild = sumMap.Keys.ToList()[sumIteration];
+
+        //         List<int> toMultiply = new List<int>();
+
+        //         foreach (KeyValuePair<int, int> entry in sumMap)
+        //         {
+        //             toMultiply.Add(GetChildren(entry.Key)[entry.Value]);
+        //         }
+        //         Expression mul = Multiply(toMultiply);
+
+        //         result.AddNode(add, mul);
+
+        //         if (sumMap[sumChild] == GetChildren(sumChild).Count - 1)
+        //         {
+        //             sumIteration ++;
+        //         }
+        //         else
+        //         {
+        //             sumMap[sumChild] ++;
+        //         }
+        //     }
+        // }
+        public List<Expression> Distribute(List<int> sums, int currentIndex, Dictionary<int, int> sumMap)
         {
-            Dictionary<int, int> sumMap = new Dictionary<int, int>();
+            List<Expression> multiplications = new List<Expression>();
 
-            foreach (int sum in sums)
+            List<int> children = GetChildren(sums[currentIndex]);
+
+            for (int i = 0; i < children.Count; i ++)
             {
-                sumMap.Add(sum, 0);
-            }
-            Expression result = new Expression();
+                sumMap[sums[currentIndex]] = children[i];
 
-            Symbol add = new Operation(true, SymbolType.Multiplication);
-
-            result.AddNode(add);
-
-            int indexToIncrement = 0;
-
-            while (true)
-            {
-                List<int> toMultiply = new List<int>();
-
-                foreach (KeyValuePair<int, int> entry in sumMap)
+                if (currentIndex != sums.Count - 1)
                 {
-                    toMultiply.Add(GetChildren(entry.Key)[entry.Value]);
+                    multiplications.AddRange(Distribute(sums, currentIndex + 1, sumMap));
                 }
-                Expression mul = Multiply(toMultiply);
-
-                result.AddNode(add, mul);
+                else
+                {
+                    multiplications.Add(Multiply(sumMap.Values.ToList()));
+                }
             }
+            return multiplications;
         }
         public Expression Distribute(int index)
         {
             if (GetNode(index).IsMultiplication())
             {
+                List<int> sums = new List<int>();
+
                 foreach (int child in GetChildren(index))
                 {
                     if (GetNode(child).IsSummation())
                     {
-
-                    }
-                    {
-
+                        sums.Add(child);
                     }
                 }
+                Expression result = new Expression();
+
+                Symbol add = new Operation(true, SymbolType.Summation);
+
+                result.AddNode(add);
+
+                foreach(Expression multiplication in Distribute(sums, 0, new Dictionary<int, int>()))
+                {
+                    result.AddNode(add, multiplication);
+                }
+                return result;
+            }
+            else
+            {
+                return null;
             }
         }
         public int GetCoefficient(int index)

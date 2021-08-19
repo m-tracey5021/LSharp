@@ -78,6 +78,17 @@ namespace LSharp.Symbols
                 return false;
             }
         }
+        public virtual bool IsAtomic()
+        {
+            if (type == SymbolType.Variable || type == SymbolType.Constant)
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
+        }
         public virtual bool IsVariable()
         {
             if (type == SymbolType.Variable)

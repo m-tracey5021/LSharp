@@ -71,7 +71,7 @@ namespace LSharp.Rules
 
             Symbol n = expression.GetNode(expression.GetChild(index, 1)).Copy();
 
-            result.AddNode(div);
+            result.SetRoot(div);
 
             result.AddNode(div, one);
             result.AddNode(div, exp);

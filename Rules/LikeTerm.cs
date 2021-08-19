@@ -81,7 +81,7 @@ namespace LSharp.Rules
 
             Expression variable = expression.CopySubTree(variableIndex);
 
-            result.AddNode(mul);
+            result.SetRoot(mul);
 
             result.AddNode(mul, total);
             // result.AddNode(mul, variable);

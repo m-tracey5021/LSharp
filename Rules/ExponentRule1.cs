@@ -79,7 +79,7 @@ namespace LSharp.Rules
 
             Symbol n = expression.GetNode(expression.GetChild(index, new List<int> { 1, 1 }));
 
-            result.AddNode(exponent);
+            result.SetRoot(exponent);
 
             result.AddNode(exponent, a);
 

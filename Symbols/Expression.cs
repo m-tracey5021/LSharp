@@ -98,15 +98,32 @@ namespace LSharp.Symbols
                 throw exception;
             }
         }
-        public void AddNode(Symbol node)
+        public void SetRoot(Symbol node)
         {
             if (tree.Count == 0)
             {
                 AddToMap(node);
 
                 root = 0;
+            }
+            else
+            {
+                throw new Exception("Tree is not empty");
+            }
+        }
+        public void SetRoot(Expression expression)
+        {
+            if (tree.Count == 0)
+            {
+                tree = expression.tree;
 
-                // childMap[root] = new List<int>();
+                parentMap = expression.parentMap;
+
+                childMap = expression.childMap;
+
+                reverseTree = expression.reverseTree;
+
+                root = expression.GetRoot();
             }
             else
             {
@@ -120,8 +137,6 @@ namespace LSharp.Symbols
                 AddToMap(child);
 
                 root = 0;
-
-                // childMap[root] = new List<int>();
             }
             else if (tree.Count > 0 && parent != null)
             {
@@ -134,29 +149,12 @@ namespace LSharp.Symbols
                 parentMap[childIndex] = parentIndex;
 
                 childMap[parentIndex].Add(childIndex);
-
-                // childMap[childIndex] = new List<int>();
             }
             else
             {
                 throw new Exception("Incorrect format supplied");
             }
         }
-        // public void AddNode(Expression expression, int parentIndex, int transferIndex = 0)
-        // {
-        //     Symbol transfer = expression.GetNode(transferIndex);
-
-        //     AddToMap(transfer);
-
-        //     parentMap[tree.Count - 1] = parentIndex;
-
-        //     childMap[parentIndex].Add(reverseTree[transfer]); 
-
-        //     foreach (int child in expression.GetChildren(transferIndex))
-        //     {
-        //         AddNode(expression, reverseTree[transfer], child);
-        //     }
-        // }
         public void AddNode(Symbol parent, Expression expression, int transferIndex = 0)
         {
             Symbol transfer = expression.GetNode(transferIndex);
@@ -174,6 +172,28 @@ namespace LSharp.Symbols
                 AddNode(transfer, expression, child);
             }
         }
+        public void AddNode(Symbol parent, int child)
+        {
+            AddNode(parent, CopySubTree(child));
+        }
+        public void AddNode(Symbol parent, int child, Expression source)
+        {
+            AddNode(parent, source.CopySubTree(child));
+        }
+        public void AddBulkNodes(Symbol parent, List<int> children)
+        {
+            foreach (int child in children)
+            {
+                AddNode(parent, CopySubTree(child));
+            }
+        }
+        public void AddBulkNodes(Symbol parent, List<int> children, Expression source)
+        {
+            foreach (int child in children)
+            {
+                AddNode(parent, source.CopySubTree(child));
+            }
+        }
         public Expression Sum()
         {
             throw new NotImplementedException();
@@ -184,7 +204,7 @@ namespace LSharp.Symbols
 
             Symbol mul = new Operation(true, SymbolType.Multiplication);
 
-            result.AddNode(mul);
+            result.SetRoot(mul);
 
             result.AddNode(mul, CopySubTree(lhs));
 
@@ -198,7 +218,7 @@ namespace LSharp.Symbols
 
             Symbol mul = new Operation(true, SymbolType.Multiplication);
 
-            result.AddNode(mul);
+            result.SetRoot(mul);
 
             foreach (int child in children)
             {
@@ -304,7 +324,7 @@ namespace LSharp.Symbols
 
                 copiedParent = GetNode(parent).Copy();
 
-                copiedExpression.AddNode(copiedParent);
+                copiedExpression.SetRoot(copiedParent);
             }
             foreach (int child in childMap[parent])
             {
@@ -351,7 +371,7 @@ namespace LSharp.Symbols
 
             Symbol add = new Operation(true, SymbolType.Summation);
 
-            result.AddNode(add);
+            result.SetRoot(add);
 
             int totalSum = 0;
 
@@ -401,59 +421,27 @@ namespace LSharp.Symbols
                 return this;
             }
         }
-        // public Expression Distribute(List<int> sums)
-        // {
-        //     Expression result = new Expression();
-
-        //     Symbol add = new Operation(true, SymbolType.Multiplication);
-
-        //     result.AddNode(add);
-
-        //     Dictionary<int, int> sumMap = new Dictionary<int, int>();
-
-        //     foreach (int sum in sums)
-        //     {
-        //         sumMap.Add(sum, 0);
-        //     }
-        //     while (true)
-        //     {
-        //         int sumIteration = 0;
-
-        //         int sumChild = sumMap.Keys.ToList()[sumIteration];
-
-        //         List<int> toMultiply = new List<int>();
-
-        //         foreach (KeyValuePair<int, int> entry in sumMap)
-        //         {
-        //             toMultiply.Add(GetChildren(entry.Key)[entry.Value]);
-        //         }
-        //         Expression mul = Multiply(toMultiply);
-
-        //         result.AddNode(add, mul);
-
-        //         if (sumMap[sumChild] == GetChildren(sumChild).Count - 1)
-        //         {
-        //             sumIteration ++;
-        //         }
-        //         else
-        //         {
-        //             sumMap[sumChild] ++;
-        //         }
-        //     }
-        // }
-        public List<Expression> Distribute(List<int> sums, int currentIndex, Dictionary<int, int> sumMap)
+        public List<Expression> Distribute(List<int> symbols, int currentIndex, Dictionary<int, int> sumMap)
         {
             List<Expression> multiplications = new List<Expression>();
 
-            List<int> children = GetChildren(sums[currentIndex]);
+            List<int> children = new List<int>();
 
+            if (GetNode(symbols[currentIndex]).IsSummation())
+            {
+                children = GetChildren(symbols[currentIndex]);
+            }
+            else
+            {
+                children.Add(symbols[currentIndex]);
+            }
             for (int i = 0; i < children.Count; i ++)
             {
-                sumMap[sums[currentIndex]] = children[i];
+                sumMap[symbols[currentIndex]] = children[i];
 
-                if (currentIndex != sums.Count - 1)
+                if (currentIndex != symbols.Count - 1)
                 {
-                    multiplications.AddRange(Distribute(sums, currentIndex + 1, sumMap));
+                    multiplications.AddRange(Distribute(symbols, currentIndex + 1, sumMap));
                 }
                 else
                 {
@@ -466,24 +454,121 @@ namespace LSharp.Symbols
         {
             if (GetNode(index).IsMultiplication())
             {
-                List<int> sums = new List<int>();
-
-                foreach (int child in GetChildren(index))
-                {
-                    if (GetNode(child).IsSummation())
-                    {
-                        sums.Add(child);
-                    }
-                }
                 Expression result = new Expression();
 
                 Symbol add = new Operation(true, SymbolType.Summation);
 
-                result.AddNode(add);
+                result.SetRoot(add);
 
-                foreach(Expression multiplication in Distribute(sums, 0, new Dictionary<int, int>()))
+                foreach(Expression multiplication in Distribute(GetChildren(index), 0, new Dictionary<int, int>()))
                 {
                     result.AddNode(add, multiplication);
+                }
+                return result;
+            }
+            else
+            {
+                return null;
+            }
+        }
+        public Expression Cancel(int index)
+        {
+            // factor first
+
+            if (GetNode(index).IsDivision())
+            {
+                int num = GetChild(index, 0);
+
+                int denom = GetChild(index, 1);
+
+                List<int> numChildren = new List<int>();
+
+                List<int> denomChildren = new List<int>();
+
+                if (GetNode(num).IsMultiplication())
+                {
+                    numChildren = GetChildren(num);
+                }
+                else
+                {
+                    numChildren.Add(num);
+                }
+                if (GetNode(denom).IsMultiplication())
+                {
+                    denomChildren = GetChildren(denom);
+                }
+                else
+                {
+                    denomChildren.Add(denom);
+                }
+                List<int> cancelledNums = new List<int>();
+
+                List<int> cancelledDenoms = new List<int>();
+                
+                for (int i = 0; i < numChildren.Count; i ++)
+                {
+                    bool canCancel = false;
+
+                    for (int j = 0; j < denomChildren.Count; j ++)
+                    {
+                        if (IsEqual(numChildren[i], denomChildren[j]))
+                        {
+                            canCancel = true;        
+                        }
+                    }
+                    if(!canCancel)
+                    {
+                        cancelledNums.Add(numChildren[i]);
+                    }
+                }
+                for (int i = 0; i < denomChildren.Count; i ++)
+                {
+                    bool canCancel = false;
+
+                    for (int j = 0; j < numChildren.Count; j ++)
+                    {
+                        if (IsEqual(denomChildren[i], numChildren[j]))
+                        {
+                            canCancel = true;
+                        }
+                    }
+                    if (!canCancel)
+                    {
+                        cancelledDenoms.Add(denomChildren[i]);
+                    }
+                }
+                Expression result = new Expression();
+
+                if (cancelledNums.Count == 0 && cancelledDenoms.Count == 0)
+                {
+                    result.SetRoot(new Constant(true, 1));
+                }
+                else if (cancelledNums.Count == 1 && cancelledDenoms.Count == 0)
+                {
+                    result.SetRoot(CopySubTree(cancelledNums[0]));
+                    
+                }
+                else if (cancelledNums.Count == 0 && cancelledDenoms.Count == 1)
+                {
+                    result.SetRoot(CopySubTree(cancelledDenoms[0]));
+                }
+                else
+                {
+                    Symbol div = new Operation(true, SymbolType.Division);
+
+                    Symbol numMul = new Operation(true, SymbolType.Multiplication);
+
+                    Symbol denomMul = new Operation(true, SymbolType.Multiplication);
+
+                    result.SetRoot(div);
+
+                    result.AddNode(div, numMul);
+
+                    result.AddNode(div, denomMul);
+
+                    result.AddBulkNodes(numMul, cancelledNums, this);
+
+                    result.AddBulkNodes(denomMul, cancelledDenoms, this);
                 }
                 return result;
             }

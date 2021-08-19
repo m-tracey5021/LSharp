@@ -64,7 +64,7 @@ namespace LSharp.Rules
 
             Symbol m2 = expression.GetNode(expression.GetChild(index, 1)).Copy();
 
-            result.AddNode(division);
+            result.SetRoot(division);
 
             result.AddNode(division, exp1);
 

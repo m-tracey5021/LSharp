@@ -300,6 +300,54 @@ namespace LSharp.Symbols
         {
             return IsEqual(root, other.GetRoot());
         }
+        public bool IsEqualByBase(int first, int second)
+        {
+            Symbol firstSymbol = GetNode(first);
+
+            Symbol secondSymbol = GetNode(second);
+            
+            if (GetNode(first).GetValue() == GetNode(second).GetValue())
+            {
+                if (GetNode(first).IsExponent() && GetNode(second).IsExponent())
+                {
+                    if (!IsEqual(GetChild(first, 0), GetChild(second, 0))) // ignore the exponents
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    List<int> firstChildren = GetChildren(first);
+
+                    List<int> secondChildren = GetChildren(second);
+
+                    if (firstChildren.Count != secondChildren.Count)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        for (int i = 0; i < firstChildren.Count; i ++)
+                        {
+                            if (!IsEqual(firstChildren[i], secondChildren[i]))
+                            {
+                                return false;
+                            }
+                        }
+                        return true;
+                    }
+                }
+                
+            }
+            else
+            {
+                return false;
+            }
+        }
         public Expression CopyTree()
         {
             Expression copiedExpression = new Expression();

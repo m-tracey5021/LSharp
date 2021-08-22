@@ -6,18 +6,219 @@ namespace LSharp.Parsing
 {
     public class ExpressionParser
     {
-        public Dictionary<SymbolType, List<char>> skippingCharacters = new Dictionary<SymbolType, List<char>>()
+        // key: type, value: (key: character, value: skipping position)
+        public Dictionary<SymbolType, Dictionary<char, KeyValuePair<int, int>>> skippingCharactersForwards = new Dictionary<SymbolType, Dictionary<char, KeyValuePair<int, int>>>()
         {
-
+            {
+                SymbolType.Summation, 
+                new Dictionary<char, KeyValuePair<int, int>>()
+                {
+                    { '(', new KeyValuePair<int, int>(0, 1) },
+                    { '{', new KeyValuePair<int, int>(0, 1) },
+                    { '[', new KeyValuePair<int, int>(0, 1) }
+                }
+            },
+            {
+                SymbolType.Multiplication, 
+                new Dictionary<char, KeyValuePair<int, int>>()
+                {
+                    { '(', new KeyValuePair<int, int>(0, 1) },
+                    { '{', new KeyValuePair<int, int>(0, 1) },
+                    { '[', new KeyValuePair<int, int>(0, 1) }
+                }
+            }
         };
-        public Dictionary<SymbolType, List<char>> terminatingCharacters = new Dictionary<SymbolType, List<char>>()
+        public Dictionary<SymbolType, Dictionary<char, KeyValuePair<int, int>>> skippingCharactersBackwards = new Dictionary<SymbolType, Dictionary<char, KeyValuePair<int, int>>>()
         {
-            { SymbolType.Summation, new List<char>(){  } },
-            { SymbolType.Multiplication, new List<char>(){ '+', '-', '/' } },
-            { SymbolType.Division, new List<char>(){  } },
-            { SymbolType.Exponent, new List<char>(){  } },
-            { SymbolType.Radical, new List<char>(){  } },
+            {
+                SymbolType.Summation, 
+                new Dictionary<char, KeyValuePair<int, int>>()
+                {
+                    { ')', new KeyValuePair<int, int>(0, -1) },
+                    { '}', new KeyValuePair<int, int>(0, -1) },
+                    { ']', new KeyValuePair<int, int>(0, -1) }
+                }
+            },
+            {
+                SymbolType.Multiplication, 
+                new Dictionary<char, KeyValuePair<int, int>>()
+                {
+                    { ')', new KeyValuePair<int, int>(0, -1) },
+                    { '}', new KeyValuePair<int, int>(0, -1) },
+                    { ']', new KeyValuePair<int, int>(0, -1) }
+                }
+            }
         };
+        public Dictionary<SymbolType, Dictionary<char, KeyValuePair<int, int>>> terminatingCharactersForwards = new Dictionary<SymbolType, Dictionary<char, KeyValuePair<int, int>>>()
+        {
+            {
+                SymbolType.Summation, 
+                new Dictionary<char, KeyValuePair<int, int>>()
+                {
+                    { ')', new KeyValuePair<int, int>(0, -1) },
+                    { '}', new KeyValuePair<int, int>(0, -1) },
+                    { ']', new KeyValuePair<int, int>(0, -1) }
+                }
+            },
+            {
+                SymbolType.Multiplication, 
+                new Dictionary<char, KeyValuePair<int, int>>()
+                {
+                    { ')', new KeyValuePair<int, int>(0, -1) },
+                    { '}', new KeyValuePair<int, int>(0, -1) },
+                    { ']', new KeyValuePair<int, int>(0, -1) },
+                    { '+', new KeyValuePair<int, int>(0, -1) },
+                    { '-', new KeyValuePair<int, int>(0, -1) },
+                    { '/', new KeyValuePair<int, int>(0, -1) },
+                }
+            }
+        };
+        public Dictionary<SymbolType, Dictionary<char, KeyValuePair<int, int>>> terminatingCharactersBackwards = new Dictionary<SymbolType, Dictionary<char, KeyValuePair<int, int>>>()
+        {
+            {
+                SymbolType.Summation, 
+                new Dictionary<char, KeyValuePair<int, int>>()
+                {
+                    { '(', new KeyValuePair<int, int>(1, 0) },
+                    { '{', new KeyValuePair<int, int>(1, 0) },
+                    { '[', new KeyValuePair<int, int>(1, 0) }
+                }
+            },
+            {
+                SymbolType.Multiplication, 
+                new Dictionary<char, KeyValuePair<int, int>>()
+                {
+                    { '(', new KeyValuePair<int, int>(1, 0) },
+                    { '{', new KeyValuePair<int, int>(1, 0) },
+                    { '[', new KeyValuePair<int, int>(1, 0) },
+                    { '+', new KeyValuePair<int, int>(1, 0) },
+                    { '-', new KeyValuePair<int, int>(0, 0) },
+                    { '/', new KeyValuePair<int, int>(1, 0) },
+                }
+            }
+        };
+        public Dictionary<SymbolType, Dictionary<string, List<char>>> terminatingCharacters = new Dictionary<SymbolType, Dictionary<string, List<char>>>()
+        {
+            { 
+                SymbolType.Summation, 
+                new Dictionary<string, List<char>>
+                {
+                    { "forwards", new List<char>(){ ')', '}', ']' } },
+                    { "backwards", new List<char>(){ '(', '{', '[' } }
+                }
+            },
+            { 
+                SymbolType.Multiplication, 
+                new Dictionary<string, List<char>>
+                {
+                    { "forwards", new List<char>(){ ')', '}', ']', '+', '-', '/'} },
+                    { "backwards", new List<char>(){ '(', '{', '[', '+', '-', '/' } }
+                }
+            },
+            { 
+                SymbolType.Division, 
+                new Dictionary<string, List<char>>
+                {
+                    { "forwards", new List<char>(){ ')', '}', ']', '+', '-', '*', '/' } },
+                    { "backwards", new List<char>(){ '(', '{', '[', '+', '-', '*', '/' } }
+                }
+            },
+        };
+        public Dictionary<SymbolType, Dictionary<string, List<char>>> skippingCharacters = new Dictionary<SymbolType, Dictionary<string, List<char>>>()
+        {
+            {
+                SymbolType.Summation,
+                new Dictionary<string, List<char>>
+                {
+                    { "forwards", new List<char>(){ '(', '{', '[' } },
+                    { "backwards", new List<char>(){ ')', '}', ']' } }
+                }
+            },
+            {
+                SymbolType.Multiplication,
+                new Dictionary<string, List<char>>
+                {
+                    { "forwards", new List<char>(){ '(', '{', '[' } },
+                    { "backwards", new List<char>(){ ')', '}', ']' } }
+                }
+            },
+            {
+                SymbolType.Division,
+                new Dictionary<string, List<char>>
+                {
+                    { "forwards", new List<char>(){ '(', '{', '[' } },
+                    { "backwards", new List<char>(){ ')', '}', ']' } }
+                }
+            }
+        };
+        public Dictionary<SymbolType, Dictionary<string, List<char>>> addingCharacters = new Dictionary<SymbolType, Dictionary<string, List<char>>>()
+        {
+            {
+                SymbolType.Summation,
+                new Dictionary<string, List<char>>
+                {
+                    { "forwards", new List<char>(){ '+', '-' } },
+                    { "backwards", new List<char>(){ '+', '-' } }
+                }
+            },
+            {
+                SymbolType.Multiplication,
+                new Dictionary<string, List<char>>
+                {
+                    { "forwards", new List<char>(){ '*' } },
+                    { "backwards", new List<char>(){ '*' } }
+                }
+            },
+            {
+                SymbolType.Division,
+                new Dictionary<string, List<char>>
+                {
+                    { "forwards", new List<char>(){  } },
+                    { "backwards", new List<char>(){  } }
+                }
+            }
+        };
+        public Dictionary<SymbolType, int> negativeIndexes = new Dictionary<SymbolType, int>()
+        {
+            { SymbolType.Summation, -1 },
+            { SymbolType.Multiplication, 0},
+            { SymbolType.Division, -1 }
+        };
+        public SymbolType GetSymbolType(char symbol)
+        {
+            if (symbol == '+' || symbol == '-')
+            {
+                return SymbolType.Summation;
+            }
+            else if (symbol == '*')
+            {
+                return SymbolType.Multiplication;
+            }
+            else if (symbol == '/')
+            {
+                return SymbolType.Division;
+            }
+            else if (symbol == '^')
+            {
+                return SymbolType.Exponent;
+            }
+            else if (symbol == 'v')
+            {
+                return SymbolType.Radical;
+            }
+            else if (Char.IsLetter(symbol))
+            {
+                return SymbolType.Variable;
+            }
+            else if (Char.IsDigit(symbol))
+            {
+                return SymbolType.Constant;
+            }
+            else
+            {
+                throw new Exception("Unsupported symbol type");
+            }
+        }
         public bool IsOpeningBracket(char bracket)
         {
             if (bracket == '(' ||
@@ -133,6 +334,164 @@ namespace LSharp.Parsing
                 );
             }
         }
+        public Scope ScopeOperation(int i, SymbolType type, string expression)
+        {
+            Scope scope = new Scope()
+            {
+                type = type
+            };
+            bool negative = expression[i] == '-' ? true : false;
+
+            int j = i - 1, k = i + 1;
+
+            int breakBackwards = j, breakForwards = negative ? i : i + 1; 
+
+            bool backwards = j >= 0 ? true : false, forwards = k < expression.Length ? true : false;
+
+            while (backwards)
+            {
+                if (j < 0)
+                {
+                    scope.AppendOperand(0, breakBackwards, expression, true);
+
+                    backwards = false;
+                }
+                else
+                {
+                    char symbol = expression[j];
+
+                    if (skippingCharacters[type]["backwards"].Contains(symbol))
+                    {
+                        j = FindMatchingBracket(j, expression) - 1;
+                    }
+                    else if (addingCharacters[type]["backwards"].Contains(symbol) && j != 0)
+                    {
+                        scope.AppendOperand(symbol == '-' ? j : j + 1, breakBackwards, expression, true);
+
+                        breakBackwards = j - 1;
+
+                        j --;
+                    }
+                    else if (terminatingCharacters[type]["backwards"].Contains(symbol))
+                    {
+                        scope.AppendOperand(j + 1, breakBackwards, expression, true);
+
+                        backwards = false;
+                    }
+                    else
+                    {
+                        j --;
+                    }
+                }
+                
+            }
+            while (forwards)
+            {
+                if (k >= expression.Length)
+                {
+                    scope.AppendOperand(breakForwards, expression.Length - 1, expression, false);
+
+                    forwards = false;
+                }
+                else
+                {
+                    char symbol = expression[k];
+
+                    if (skippingCharacters[type]["forwards"].Contains(symbol))
+                    {
+                        k = FindMatchingBracket(k, expression) + 1;
+                    }
+                    else if (addingCharacters[type]["forwards"].Contains(symbol))
+                    {
+                        scope.AppendOperand(breakForwards, k - 1, expression, false);
+
+                        breakForwards = symbol == '-' ? k : k + 1;
+
+                        k ++;
+                    }
+                    else if (terminatingCharacters[type]["forwards"].Contains(symbol))
+                    {
+                        scope.AppendOperand(breakForwards, k - 1, expression, false);
+
+                        forwards = false;
+                    }
+                    else
+                    {
+                        k ++;
+                    }
+                }
+                
+            }
+            if (scope.operands.Count == 0)
+            {
+                return null;
+            }
+            else
+            {
+                scope.sign = j >= 0 ? (expression[j + negativeIndexes[type]] == '-' ? false : true) : true; 
+
+                scope.start = j;
+
+                scope.end = k;
+
+                return scope;
+            }
+            
+        }
+        // public Scope ScopeOperation(int i, SymbolType type, string expression)
+        // {
+        //     Scope scope = new Scope()
+        //     {
+        //         type = type
+        //     };
+        //     bool negative = expression[i] == '-' ? true : false;
+
+        //     int j = i - 1, k = negative ? i : i + 1;
+
+        //     int breakBackwards = j, breakForwards = k; 
+
+        //     bool backwards = j >= 0 ? true : false, forwards = k < expression.Length ? true : false;
+
+        //     while (backwards)
+        //     {
+        //         if (skippingCharactersBackwards[type].ContainsKey(expression[j]))
+        //         {
+        //             KeyValuePair<int, int> offsets = skippingCharactersBackwards[type][expression[j]];
+
+        //             int startOffset = offsets.Key, endOffset = offsets.Value;
+
+        //             j = FindMatchingBracket(j + startOffset, expression) + endOffset;
+        //         }
+        //         else if (terminatingCharactersBackwards[type].ContainsKey(expression[j]))
+        //         {
+        //             KeyValuePair<int, int> offsets = terminatingCharactersBackwards[type][expression[j]];
+
+        //             int startOffset = offsets.Key, endOffset = offsets.Value;
+
+        //             scope.AppendOperand(j + startOffset, breakBackwards + endOffset, expression, true);
+        //         }
+        //     }
+        //     while (forwards)
+        //     {
+        //         if (skippingCharactersForwards[type].ContainsKey(expression[k]))
+        //         {
+        //             KeyValuePair<int, int> offsets = skippingCharactersBackwards[type][expression[k]];
+
+        //             int startOffset = offsets.Key, endOffset = offsets.Value;
+
+        //             k = FindMatchingBracket(j + startOffset, expression) + endOffset;
+        //         }
+        //         else if (terminatingCharactersBackwards[type].ContainsKey(expression[j]))
+        //         {
+        //             KeyValuePair<int, int> offsets = terminatingCharactersBackwards[type][expression[j]];
+
+        //             int startOffset = offsets.Key, endOffset = offsets.Value;
+
+        //             scope.AppendOperand(j + startOffset, breakBackwards + endOffset, expression, false);
+        //         }
+        //         else if (appendingCharactersForwards)
+        //     }
+        // }
         public Scope ScopeSummation(int i, string expression)
         {
             Scope scope = new Scope()
@@ -231,126 +590,128 @@ namespace LSharp.Parsing
                 return scope;
             }
         }
-        public Scope ScopeMultiplication(int lhs, int rhs, string expression)
-        {
-            Scope scope = new Scope()
-            {
-                type = SymbolType.Multiplication
-            };
+        // public Scope ScopeMultiplication(int lhs, int rhs, string expression)
+        // {
+        //     Scope scope = new Scope()
+        //     {
+        //         type = SymbolType.Multiplication
+        //     };
 
-            int breakForwards = rhs, breakBackwards = lhs, j = rhs, k = lhs;
+        //     int breakForwards = rhs, breakBackwards = lhs, j = rhs, k = lhs;
 
-            bool forwards = true, backwards = true;
+        //     bool forwards = true, backwards = true;
 
-            while (true)
-            {
-                if (forwards)
-                {
-                    if (IsMultiplied(j, j + 1, expression))
-                    {
-                        scope.AppendOperand(breakForwards, j, expression, false);
+        //     while (true)
+        //     {
+        //         if (forwards)
+        //         {
+        //             if (IsMultiplied(j, j + 1, expression)) // adding
+        //             {
+        //                 scope.AppendOperand(breakForwards, j, expression, false);
 
-                        breakForwards = j + 1;
+        //                 breakForwards = j + 1;
 
-                        j ++;
-                    }
-                    else
-                    {
-                        if (IsOpeningBracket(expression[j]))
-                        {
-                            j = FindMatchingBracket(j, expression);
+        //                 j ++;
+        //             }
+        //             else
+        //             {
+        //                 if (IsOpeningBracket(expression[j])) // skipping
+        //                 {
+        //                     // if bracket == ( then startoffset = j, endoffset = + 1
+        //                     // if bracket == {
+        //                     j = FindMatchingBracket(j, expression);
 
-                            if (expression[j + 1] == 'v')
-                            {
-                                j = expression[j + 2] == '(' ? FindMatchingBracket(j + 2, expression) : j + 2;
-                            }
-                            else if (expression[j + 1] == '^')
-                            {
-                                j = FindMatchingBracket(j + 2, expression);
-                            }
-                            else
-                            {
-                                throw new Exception("Expression is not well formed");
-                            }
-                        }
-                        else if (terminatingCharacters[SymbolType.Multiplication].Contains(expression[j]) || j >= expression.Length)
-                        {
-                            scope.AppendOperand(breakForwards, j - 1, expression, false);
+        //                     if (expression[j + 1] == 'v')
+        //                     {
+        //                         j = expression[j + 2] == '(' ? FindMatchingBracket(j + 2, expression) : j + 2;
+        //                     }
+        //                     else if (expression[j + 1] == '^')
+        //                     {
+        //                         j = FindMatchingBracket(j + 2, expression);
+        //                     }
+        //                     else
+        //                     {
+        //                         throw new Exception("Expression is not well formed");
+        //                     }
+        //                 }
+        //                 else if (terminatingCharacters[SymbolType.Multiplication].Contains(expression[j]) || j >= expression.Length) // terminating
+        //                 {
+        //                     scope.AppendOperand(breakForwards, j - 1, expression, false);
 
-                            forwards = false;
-                        }
-                        else
-                        {
-                            if (IsClosingBracket(expression[j + 1]))
-                            {
-                                scope.AppendOperand(breakForwards, j, expression, false);
+        //                     forwards = false;
+        //                 }
+        //                 else // terminating
+        //                 {
+        //                     if (IsClosingBracket(expression[j + 1]))
+        //                     {
+        //                         scope.AppendOperand(breakForwards, j, expression, false);
 
-                                forwards = false;
-                            }
-                            j ++;
-                        }
-                    }
-                }
-                if (backwards)
-                {
-                    if (IsMultiplied(k - 1, k, expression))
-                    {
-                        scope.AppendOperand(k, breakBackwards, expression, true);
+        //                         forwards = false;
+        //                     }
+        //                     j ++;
+        //                 }
+        //             }
+        //         }
+        //         if (backwards)
+        //         {
+        //             if (IsMultiplied(k - 1, k, expression))
+        //             {
+        //                 scope.AppendOperand(k, breakBackwards, expression, true);
 
-                        breakBackwards = k - 1;
+        //                 breakBackwards = k - 1;
 
-                        k --;
-                    }
-                    else
-                    {
-                        if (IsClosingBracket(expression[k]))
-                        {
-                            k = FindMatchingBracket(k, expression);
+        //                 k --;
+        //             }
+        //             else
+        //             {
+        //                 if (IsClosingBracket(expression[k]))
+        //                 {
+        //                     k = FindMatchingBracket(k, expression);
 
-                            if (expression[k - 1] == '^')
-                            {
-                                k = expression[k - 2] == ')' ? FindMatchingBracket(k - 2, expression) : k - 2;
-                            }
-                            else if (expression[k - 1] == 'v')
-                            {
-                                k = FindMatchingBracket(k - 2, expression);
-                            }
-                            else
-                            {
-                                throw new Exception("Expression is not well formed");
-                            }
-                        }
-                        else if (terminatingCharacters[SymbolType.Multiplication].Contains(expression[k]) || k < 0)
-                        {
-                            scope.AppendOperand(k + 1, breakBackwards, expression, true);
+        //                     if (expression[k - 1] == '^')
+        //                     {
+        //                         k = expression[k - 2] == ')' ? FindMatchingBracket(k - 2, expression) : k - 2;
+        //                     }
+        //                     else if (expression[k - 1] == 'v')
+        //                     {
+        //                         k = FindMatchingBracket(k - 2, expression);
+        //                     }
+        //                     else
+        //                     {
+        //                         throw new Exception("Expression is not well formed");
+        //                     }
+        //                 }
+        //                 else if (terminatingCharacters[SymbolType.Multiplication].Contains(expression[k]) || k < 0)
+        //                 {
+        //                     scope.AppendOperand(k + 1, breakBackwards, expression, true);
 
-                            backwards = false;
-                        }
-                        else
-                        {
-                            if (IsOpeningBracket(expression[k - 1]))
-                            {
-                                scope.AppendOperand(k, breakBackwards, expression, true);
+        //                     backwards = false;
+        //                 }
+        //                 else
+        //                 {
+        //                     if (IsOpeningBracket(expression[k - 1]))
+        //                     {
+        //                         scope.AppendOperand(k, breakBackwards, expression, true);
 
-                                backwards = false;
-                            }
-                            k --;
-                        }
-                    }
-                }
-                if (!forwards && !backwards)
-                {
-                    break;
-                }
-            }
-            scope.sign = expression[k] == '-' ? false : true;
+        //                         backwards = false;
+        //                     }
+        //                     k --;
+        //                 }
+        //             }
+        //         }
+        //         if (!forwards && !backwards)
+        //         {
+        //             break;
+        //         }
+        //     }
+        //     scope.sign = expression[k] == '-' ? false : true;
 
-            scope.start = k;
+        //     scope.start = k;
 
-            scope.end = j;
+        //     scope.end = j;
 
-            return scope;
-        }
+        //     return scope;
+        // }
         public Scope ScopeDivision(int i, string expression)
         {
             Scope scope = new Scope()
@@ -369,19 +730,19 @@ namespace LSharp.Parsing
                     {
                         j ++;
                     }
-                    else if ((new List<char>(){ '(', '[', '^' }).Contains(expression[j]))
+                    else if ((new List<char>(){ '(', '[', '^' }).Contains(expression[j])) // skipping
                     {
                         int startOffset = expression[j] == '^' ? j + 1 : j, endOffset = expression[j] == '[' ? 2 : 1;
 
                         j = FindMatchingBracket(startOffset, expression) + endOffset;
                     }
-                    else if (j >= expression.Length)
+                    else if (j >= expression.Length) // terinating
                     {
 
                     }
                     else
                     {
-                        scope.AppendOperand(breakForwards, j - 1, expression, false);
+                        scope.AppendOperand(breakForwards, j - 1, expression, false); // terminating and adding
 
                         forwards = false;
                     }
@@ -610,49 +971,67 @@ namespace LSharp.Parsing
         {
             char symbol = expression[i];
 
-            if (symbol == '+' || symbol == '-')
+            List<char> operations = new List<char>()
             {
-                return ScopeSummation(i, expression);
-            }   
-            else if (IsMultiplied(i, i + 1, expression))
+                '+', '-', '*', '/', '^', 'v'
+            };
+
+            if (operations.Contains(symbol))
             {
-                return ScopeMultiplication(i, i + 1, expression);
-            }
-            else if (IsMultiplied(i - 1, i, expression))
-            {
-                return ScopeMultiplication(i - 1, i, expression);
-            }
-            else if (symbol == '/')
-            {
-                return ScopeDivision(i, expression);
-            }
-            else if (symbol == '^' || symbol == 'v')
-            {
-                return ScopeAuxillary(i, expression);
-            }
-            else if (!IsMultiplied(i, i + 1, expression) && !IsMultiplied(i - 1, i, expression) && Char.IsLetter(symbol) && symbol != 'v')
-            {
-                return new Scope()
-                {
-                    sign = expression[i - 1] == '-' ? false : true,
-                    type = SymbolType.Variable,
-                    start = i - 1,
-                    end = i + 1,
-                    operands = new List<string>()
-                    {
-                        symbol.ToString()
-                    }
-                };
-            }
-            else if (!IsMultiplied(i, i + 1, expression) && !IsMultiplied(i - 1, i, expression) && Char.IsDigit(symbol))
-            {
-                return ScopeConstant(i, expression);
+                return ScopeOperation(i, GetSymbolType(symbol), expression);
             }
             else
             {
                 return null;
             }
         }
+        // public Scope FindScope(int i, string expression)
+        // {
+        //     char symbol = expression[i];
+
+        //     if (symbol == '+' || symbol == '-')
+        //     {
+        //         return ScopeSummation(i, expression);
+        //     }   
+        //     else if (IsMultiplied(i, i + 1, expression))
+        //     {
+        //         return ScopeMultiplication(i, i + 1, expression);
+        //     }
+        //     else if (IsMultiplied(i - 1, i, expression))
+        //     {
+        //         return ScopeMultiplication(i - 1, i, expression);
+        //     }
+        //     else if (symbol == '/')
+        //     {
+        //         return ScopeDivision(i, expression);
+        //     }
+        //     else if (symbol == '^' || symbol == 'v')
+        //     {
+        //         return ScopeAuxillary(i, expression);
+        //     }
+        //     else if (!IsMultiplied(i, i + 1, expression) && !IsMultiplied(i - 1, i, expression) && Char.IsLetter(symbol) && symbol != 'v')
+        //     {
+        //         return new Scope()
+        //         {
+        //             sign = expression[i - 1] == '-' ? false : true,
+        //             type = SymbolType.Variable,
+        //             start = i - 1,
+        //             end = i + 1,
+        //             operands = new List<string>()
+        //             {
+        //                 symbol.ToString()
+        //             }
+        //         };
+        //     }
+        //     else if (!IsMultiplied(i, i + 1, expression) && !IsMultiplied(i - 1, i, expression) && Char.IsDigit(symbol))
+        //     {
+        //         return ScopeConstant(i, expression);
+        //     }
+        //     else
+        //     {
+        //         return null;
+        //     }
+        // }
         public Scope FindMainScope(string expression)
         {
             Scope mainScope = new Scope();

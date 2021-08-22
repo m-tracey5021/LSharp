@@ -15,9 +15,9 @@ namespace LSharp.Parsing
         {
             operands = new List<string>();
         }
-        public void AppendOperand(int start, int end, string expression, bool insert)
+        public void AppendOperand(int start, int end, string expression, bool sign, bool insert)
         {
-            string operand = expression.Substring(start, (end - start) + 1);
+            string operand = sign ? expression.Substring(start, (end - start) + 1) : '-' + expression.Substring(start, (end - start) + 1);
 
             if (insert)
             {

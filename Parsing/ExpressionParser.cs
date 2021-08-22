@@ -219,6 +219,14 @@ namespace LSharp.Parsing
                 throw new Exception("Unsupported symbol type");
             }
         }
+        public bool GetSign(int start, string expression, SymbolType type)
+        {
+            return !(expression[start + negativeIndexes[type]] == '-');
+        }
+        public bool GetSign(int start, string expression)
+        {
+            return !(expression[start] == '-');
+        }
         public bool IsOpeningBracket(char bracket)
         {
             if (bracket == '(' ||
@@ -334,17 +342,17 @@ namespace LSharp.Parsing
                 );
             }
         }
-        public Scope ScopeOperation(int i, SymbolType type, string expression)
+        public Scope ScopeOperation(int i, SymbolType operatorType, string expression)
         {
             Scope scope = new Scope()
             {
-                type = type
+                type = operatorType
             };
-            bool negative = expression[i] == '-' ? true : false;
+            bool operandSignForwards = expression[i] == '-' ? false : true, operandSignBackwards = true;
 
             int j = i - 1, k = i + 1;
 
-            int breakBackwards = j, breakForwards = negative ? i : i + 1; 
+            int breakBackwards = j, breakForwards = k; 
 
             bool backwards = j >= 0 ? true : false, forwards = k < expression.Length ? true : false;
 
@@ -352,7 +360,7 @@ namespace LSharp.Parsing
             {
                 if (j < 0)
                 {
-                    scope.AppendOperand(0, breakBackwards, expression, true);
+                    scope.AppendOperand(0, breakBackwards, expression, true, true);
 
                     backwards = false;
                 }
@@ -360,21 +368,24 @@ namespace LSharp.Parsing
                 {
                     char symbol = expression[j];
 
-                    if (skippingCharacters[type]["backwards"].Contains(symbol))
+                    // SymbolType operandType = GetSymbolType(symbol); 
+                    operandSignBackwards = symbol == '-' ? false : true;
+
+                    if (skippingCharacters[operatorType]["backwards"].Contains(symbol))
                     {
                         j = FindMatchingBracket(j, expression) - 1;
                     }
-                    else if (addingCharacters[type]["backwards"].Contains(symbol) && j != 0)
+                    else if (addingCharacters[operatorType]["backwards"].Contains(symbol) && j != 0)
                     {
-                        scope.AppendOperand(symbol == '-' ? j : j + 1, breakBackwards, expression, true);
+                        scope.AppendOperand(j + 1, breakBackwards, expression, operandSignBackwards, true);
 
                         breakBackwards = j - 1;
 
                         j --;
                     }
-                    else if (terminatingCharacters[type]["backwards"].Contains(symbol))
+                    else if (terminatingCharacters[operatorType]["backwards"].Contains(symbol))
                     {
-                        scope.AppendOperand(j + 1, breakBackwards, expression, true);
+                        scope.AppendOperand(j + 1, breakBackwards, expression, operandSignBackwards, true);
 
                         backwards = false;
                     }
@@ -389,7 +400,7 @@ namespace LSharp.Parsing
             {
                 if (k >= expression.Length)
                 {
-                    scope.AppendOperand(breakForwards, expression.Length - 1, expression, false);
+                    scope.AppendOperand(breakForwards, expression.Length - 1, expression, operandSignForwards, false);
 
                     forwards = false;
                 }
@@ -397,21 +408,29 @@ namespace LSharp.Parsing
                 {
                     char symbol = expression[k];
 
-                    if (skippingCharacters[type]["forwards"].Contains(symbol))
+                    // SymbolType operandType = GetSymbolType(symbol);
+                    // operandSignForwards = symbol == '-' ? false; 
+                    // if (symbol == '-'){ operandSignForwards = false; }
+
+                    if (skippingCharacters[operatorType]["forwards"].Contains(symbol))
                     {
                         k = FindMatchingBracket(k, expression) + 1;
                     }
-                    else if (addingCharacters[type]["forwards"].Contains(symbol))
+                    else if (addingCharacters[operatorType]["forwards"].Contains(symbol))
                     {
-                        scope.AppendOperand(breakForwards, k - 1, expression, false);
+                        scope.AppendOperand(breakForwards, k - 1, expression, operandSignForwards, false);
 
-                        breakForwards = symbol == '-' ? k : k + 1;
+                        operandSignForwards = symbol == '-' ? false : true;
+
+                        breakForwards = k + 1;
 
                         k ++;
                     }
-                    else if (terminatingCharacters[type]["forwards"].Contains(symbol))
+                    else if (terminatingCharacters[operatorType]["forwards"].Contains(symbol))
                     {
-                        scope.AppendOperand(breakForwards, k - 1, expression, false);
+                        scope.AppendOperand(breakForwards, k - 1, expression, operandSignForwards, false);
+
+                        operandSignForwards = symbol == '-' ? false : true;
 
                         forwards = false;
                     }
@@ -428,7 +447,7 @@ namespace LSharp.Parsing
             }
             else
             {
-                scope.sign = j >= 0 ? (expression[j + negativeIndexes[type]] == '-' ? false : true) : true; 
+                scope.sign = j >= 0 ? (expression[j + negativeIndexes[operatorType]] == '-' ? false : true) : true; 
 
                 scope.start = j;
 
@@ -492,104 +511,104 @@ namespace LSharp.Parsing
         //         else if (appendingCharactersForwards)
         //     }
         // }
-        public Scope ScopeSummation(int i, string expression)
-        {
-            Scope scope = new Scope()
-            {
-                type = SymbolType.Summation
-            };
-            int breakForwards = expression[i] == '+' ? i + 1 : i, breakBackwards = expression[i] == '+' ? i + 1 : i - 1, j = i + 1, k = i - 1;
+        // public Scope ScopeSummation(int i, string expression)
+        // {
+        //     Scope scope = new Scope()
+        //     {
+        //         type = SymbolType.Summation
+        //     };
+        //     int breakForwards = expression[i] == '+' ? i + 1 : i, breakBackwards = expression[i] == '+' ? i + 1 : i - 1, j = i + 1, k = i - 1;
 
-            bool forwards = true, backwards = true;
+        //     bool forwards = true, backwards = true;
 
-            while (true)
-            {
-                if (forwards)
-                {
-                    if (expression[j] == '+' || expression[j] == '-')
-                    {
-                        scope.AppendOperand(breakForwards, j - 1, expression, false);
+        //     while (true)
+        //     {
+        //         if (forwards)
+        //         {
+        //             if (expression[j] == '+' || expression[j] == '-')
+        //             {
+        //                 scope.AppendOperand(breakForwards, j - 1, expression, false);
 
-                        breakForwards = expression[j] == '+' ? j + 1 : j;
+        //                 breakForwards = expression[j] == '+' ? j + 1 : j;
 
-                        j ++;
-                    }
-                    else if (IsOpeningBracket(expression[j]))
-                    {
-                        j = FindMatchingBracket(j, expression) + 1;
-                    }
-                    else if (IsClosingBracket(expression[j]) || j >= expression.Length)
-                    {
-                        scope.AppendOperand(breakForwards, j - 1, expression, false);
+        //                 j ++;
+        //             }
+        //             else if (IsOpeningBracket(expression[j]))
+        //             {
+        //                 j = FindMatchingBracket(j, expression) + 1;
+        //             }
+        //             else if (IsClosingBracket(expression[j]) || j >= expression.Length)
+        //             {
+        //                 scope.AppendOperand(breakForwards, j - 1, expression, false);
 
-                        forwards = false;
-                    }
-                    else
-                    {
-                        j ++;
-                    }
-                }
-                if (backwards)
-                {
-                    if (expression[k] == '+' || expression[k] == '-')
-                    {
-                        int start = expression[k] == '+' ? k + 1 : k;
+        //                 forwards = false;
+        //             }
+        //             else
+        //             {
+        //                 j ++;
+        //             }
+        //         }
+        //         if (backwards)
+        //         {
+        //             if (expression[k] == '+' || expression[k] == '-')
+        //             {
+        //                 int start = expression[k] == '+' ? k + 1 : k;
 
-                        scope.AppendOperand(start, breakBackwards, expression, true);
+        //                 scope.AppendOperand(start, breakBackwards, expression, true);
 
-                        breakBackwards = k - 1;
+        //                 breakBackwards = k - 1;
 
-                        k --;
-                    }
-                    else if (IsClosingBracket(expression[k]))
-                    {
-                        k = FindMatchingBracket(k, expression) - 1;
-                    }
-                    // else if (IsOpeningBracket(expression[k]) || k <= -1)
-                    // {
-                    //     if (k != breakBackwards){ scope.AppendOperand(k + 1, breakBackwards, expression, true); }
+        //                 k --;
+        //             }
+        //             else if (IsClosingBracket(expression[k]))
+        //             {
+        //                 k = FindMatchingBracket(k, expression) - 1;
+        //             }
+        //             // else if (IsOpeningBracket(expression[k]) || k <= -1)
+        //             // {
+        //             //     if (k != breakBackwards){ scope.AppendOperand(k + 1, breakBackwards, expression, true); }
 
-                    //     scope.sign = k != 0 ? (expression[k - 1] == '-' ? false : true) : false;
+        //             //     scope.sign = k != 0 ? (expression[k - 1] == '-' ? false : true) : false;
 
-                    //     backwards = false;
-                    // }
-                    else if (IsOpeningBracket(expression[k]))
-                    {
-                        scope.AppendOperand(k + 1, breakBackwards, expression, true);
+        //             //     backwards = false;
+        //             // }
+        //             else if (IsOpeningBracket(expression[k]))
+        //             {
+        //                 scope.AppendOperand(k + 1, breakBackwards, expression, true);
 
-                        scope.sign = expression[k - 1] == '-' ? false : true;
+        //                 scope.sign = expression[k - 1] == '-' ? false : true;
 
-                        backwards = false;
-                    }
-                    else if (k < 0)
-                    {
-                        if (breakBackwards >= 0){ scope.AppendOperand(0, breakBackwards, expression, true); }
+        //                 backwards = false;
+        //             }
+        //             else if (k < 0)
+        //             {
+        //                 if (breakBackwards >= 0){ scope.AppendOperand(0, breakBackwards, expression, true); }
 
-                        backwards = false;
-                    }
-                    else
-                    {
-                        k --;
-                    }
-                }
-                if (!forwards && !backwards)
-                {
-                    break;
-                }
-            }
-            if (scope.operands.Count == 1 || scope.operands.Count == 0)
-            {
-                return null;
-            }
-            else
-            {
-                scope.start = k;
+        //                 backwards = false;
+        //             }
+        //             else
+        //             {
+        //                 k --;
+        //             }
+        //         }
+        //         if (!forwards && !backwards)
+        //         {
+        //             break;
+        //         }
+        //     }
+        //     if (scope.operands.Count == 1 || scope.operands.Count == 0)
+        //     {
+        //         return null;
+        //     }
+        //     else
+        //     {
+        //         scope.start = k;
 
-                scope.end = j;
+        //         scope.end = j;
 
-                return scope;
-            }
-        }
+        //         return scope;
+        //     }
+        // }
         // public Scope ScopeMultiplication(int lhs, int rhs, string expression)
         // {
         //     Scope scope = new Scope()
@@ -712,167 +731,167 @@ namespace LSharp.Parsing
 
         //     return scope;
         // }
-        public Scope ScopeDivision(int i, string expression)
-        {
-            Scope scope = new Scope()
-            {
-                type = SymbolType.Division
-            };
-            int breakForwards = i + 1, breakBackwards = i - 1, j = i + 1, k = i - 1;
+        // public Scope ScopeDivision(int i, string expression)
+        // {
+        //     Scope scope = new Scope()
+        //     {
+        //         type = SymbolType.Division
+        //     };
+        //     int breakForwards = i + 1, breakBackwards = i - 1, j = i + 1, k = i - 1;
 
-            bool forwards = true, backwards = true;
+        //     bool forwards = true, backwards = true;
 
-            while(true)
-            {
-                if (forwards)
-                {
-                    if (Char.IsLetter(expression[j]) || Char.IsDigit(expression[j]))
-                    {
-                        j ++;
-                    }
-                    else if ((new List<char>(){ '(', '[', '^' }).Contains(expression[j])) // skipping
-                    {
-                        int startOffset = expression[j] == '^' ? j + 1 : j, endOffset = expression[j] == '[' ? 2 : 1;
+        //     while(true)
+        //     {
+        //         if (forwards)
+        //         {
+        //             if (Char.IsLetter(expression[j]) || Char.IsDigit(expression[j]))
+        //             {
+        //                 j ++;
+        //             }
+        //             else if ((new List<char>(){ '(', '[', '^' }).Contains(expression[j])) // skipping
+        //             {
+        //                 int startOffset = expression[j] == '^' ? j + 1 : j, endOffset = expression[j] == '[' ? 2 : 1;
 
-                        j = FindMatchingBracket(startOffset, expression) + endOffset;
-                    }
-                    else if (j >= expression.Length) // terinating
-                    {
+        //                 j = FindMatchingBracket(startOffset, expression) + endOffset;
+        //             }
+        //             else if (j >= expression.Length) // terinating
+        //             {
 
-                    }
-                    else
-                    {
-                        scope.AppendOperand(breakForwards, j - 1, expression, false); // terminating and adding
+        //             }
+        //             else
+        //             {
+        //                 scope.AppendOperand(breakForwards, j - 1, expression, false); // terminating and adding
 
-                        forwards = false;
-                    }
-                }
-                if (backwards)
-                {
-                    if (Char.IsLetter(expression[k]) || Char.IsDigit(expression[k]))
-                    {
-                        k --;
-                    }
-                    else if ((new List<char>(){ ')', '}', 'v' }).Contains(expression[k]))
-                    {
-                        int startOffset = expression[k] == 'v' ? k - 1 : k, endOffset = expression[k] == '}' ? -2 : -1;
+        //                 forwards = false;
+        //             }
+        //         }
+        //         if (backwards)
+        //         {
+        //             if (Char.IsLetter(expression[k]) || Char.IsDigit(expression[k]))
+        //             {
+        //                 k --;
+        //             }
+        //             else if ((new List<char>(){ ')', '}', 'v' }).Contains(expression[k]))
+        //             {
+        //                 int startOffset = expression[k] == 'v' ? k - 1 : k, endOffset = expression[k] == '}' ? -2 : -1;
 
-                        k = FindMatchingBracket(startOffset, expression) + endOffset;
-                    }
-                    else if (k < 0)
-                    {
-                        scope.AppendOperand(0, breakBackwards, expression, true);
+        //                 k = FindMatchingBracket(startOffset, expression) + endOffset;
+        //             }
+        //             else if (k < 0)
+        //             {
+        //                 scope.AppendOperand(0, breakBackwards, expression, true);
 
-                        backwards = false;
-                    }
-                    else
-                    {
-                        scope.AppendOperand(k + 1, breakBackwards, expression, true);
+        //                 backwards = false;
+        //             }
+        //             else
+        //             {
+        //                 scope.AppendOperand(k + 1, breakBackwards, expression, true);
 
-                        backwards = false;
-                    }
-                }
-                if (!backwards && !forwards)
-                {
-                    break;
-                }   
-            }
-            if (expression[k] == '-' && expression[i + 1] == '-')
-            {
-                scope.sign = true;
-            }
-            else if (expression[k] == '-' || expression[i + 1] == '-')
-            {
-                scope.sign = false;
-            }
-            scope.start = k;
+        //                 backwards = false;
+        //             }
+        //         }
+        //         if (!backwards && !forwards)
+        //         {
+        //             break;
+        //         }   
+        //     }
+        //     if (expression[k] == '-' && expression[i + 1] == '-')
+        //     {
+        //         scope.sign = true;
+        //     }
+        //     else if (expression[k] == '-' || expression[i + 1] == '-')
+        //     {
+        //         scope.sign = false;
+        //     }
+        //     scope.start = k;
 
-            scope.end = j;
+        //     scope.end = j;
 
-            return scope;
-        }
-        public Scope ScopeAuxillary(int i, string expression)
-        {
-            Scope scope = new Scope();
+        //     return scope;
+        // }
+        // public Scope ScopeAuxillary(int i, string expression)
+        // {
+        //     Scope scope = new Scope();
 
-            int breakForwards = i + 1, breakBackwards = i - 1, j = i + 1, k = i - 1;
+        //     int breakForwards = i + 1, breakBackwards = i - 1, j = i + 1, k = i - 1;
 
-            if (expression[i] == '^')
-            {
-                scope.type = SymbolType.Exponent;
+        //     if (expression[i] == '^')
+        //     {
+        //         scope.type = SymbolType.Exponent;
 
-                scope.AppendOperand(breakForwards + 1, j - 2, expression, false);
+        //         scope.AppendOperand(breakForwards + 1, j - 2, expression, false);
 
-                if (Char.IsLetter(expression[k]))
-                {
-                    k --;
+        //         if (Char.IsLetter(expression[k]))
+        //         {
+        //             k --;
 
-                    scope.AppendOperand(k + 1, breakBackwards, expression, true);
-                }
-                else if (Char.IsDigit(expression[k]))
-                {
-                    while (Char.IsDigit(expression[k]))
-                    {
-                        k --;
-                    }
-                    scope.AppendOperand(k + 1, breakBackwards, expression, true);
-                }
-                else if (expression[k] == ')')
-                {
-                    k = FindMatchingBracket(k, expression) - 1;
+        //             scope.AppendOperand(k + 1, breakBackwards, expression, true);
+        //         }
+        //         else if (Char.IsDigit(expression[k]))
+        //         {
+        //             while (Char.IsDigit(expression[k]))
+        //             {
+        //                 k --;
+        //             }
+        //             scope.AppendOperand(k + 1, breakBackwards, expression, true);
+        //         }
+        //         else if (expression[k] == ')')
+        //         {
+        //             k = FindMatchingBracket(k, expression) - 1;
 
-                    scope.AppendOperand(k + 2, breakBackwards, expression, true);
-                }
-                else
-                {
-                    throw new Exception("Expression is not well formed");
-                }
-            }
-            else if (expression[i] == 'v')
-            {
-                scope.type = SymbolType.Radical;
+        //             scope.AppendOperand(k + 2, breakBackwards, expression, true);
+        //         }
+        //         else
+        //         {
+        //             throw new Exception("Expression is not well formed");
+        //         }
+        //     }
+        //     else if (expression[i] == 'v')
+        //     {
+        //         scope.type = SymbolType.Radical;
 
-                k = FindMatchingBracket(k, expression) - 1;
+        //         k = FindMatchingBracket(k, expression) - 1;
 
-                scope.AppendOperand(k + 2, breakBackwards - 1, expression, true);
+        //         scope.AppendOperand(k + 2, breakBackwards - 1, expression, true);
 
-                if (Char.IsLetter(expression[j]))
-                {
-                    j ++;
+        //         if (Char.IsLetter(expression[j]))
+        //         {
+        //             j ++;
 
-                    scope.AppendOperand(breakForwards, j - 1, expression, false);
-                }
-                else if (Char.IsDigit(expression[j]))
-                {
-                    while (Char.IsDigit(expression[j]))
-                    {
-                        j ++;
-                    }
-                    scope.AppendOperand(breakForwards, j - 1, expression, false);
-                }
-                else if (expression[j] == '(')
-                {   
-                    j = FindMatchingBracket(j, expression) + 1;
+        //             scope.AppendOperand(breakForwards, j - 1, expression, false);
+        //         }
+        //         else if (Char.IsDigit(expression[j]))
+        //         {
+        //             while (Char.IsDigit(expression[j]))
+        //             {
+        //                 j ++;
+        //             }
+        //             scope.AppendOperand(breakForwards, j - 1, expression, false);
+        //         }
+        //         else if (expression[j] == '(')
+        //         {   
+        //             j = FindMatchingBracket(j, expression) + 1;
 
-                    scope.AppendOperand(breakForwards + 1, j - 2, expression, false);
-                }
-                else
-                {
-                    throw new Exception("Expression is not well formed");
-                }
-            }
-            else
-            {
-                throw new Exception("Expression is not well formed");
-            }
-            scope.sign = expression[k] == '-' ? false : true;
+        //             scope.AppendOperand(breakForwards + 1, j - 2, expression, false);
+        //         }
+        //         else
+        //         {
+        //             throw new Exception("Expression is not well formed");
+        //         }
+        //     }
+        //     else
+        //     {
+        //         throw new Exception("Expression is not well formed");
+        //     }
+        //     scope.sign = expression[k] == '-' ? false : true;
 
-            scope.start = k;
+        //     scope.start = k;
 
-            scope.end = j;
+        //     scope.end = j;
 
-            return scope;
-        }
+        //     return scope;
+        // }
         // public Scope ScopeConstant(int i, string expression)
         // {
         //     Scope scope = new Scope()
@@ -922,51 +941,51 @@ namespace LSharp.Parsing
 
         //     return scope;
         // }
-        public Scope ScopeConstant(int i, string expression)
-        {
-            Scope scope = new Scope()
-            {
-                type = SymbolType.Constant
-            };
+        // public Scope ScopeConstant(int i, string expression)
+        // {
+        //     Scope scope = new Scope()
+        //     {
+        //         type = SymbolType.Constant
+        //     };
 
-            int start = i - 1, end = i + 1;
+        //     int start = i - 1, end = i + 1;
 
-            bool forwards = end < expression.Length ? true : false, backwards = start >= 0 ? true : false;
+        //     bool forwards = end < expression.Length ? true : false, backwards = start >= 0 ? true : false;
 
-            while (forwards)
-            {
-                if (Char.IsDigit(expression[end]))
-                {
-                    end ++;
-                }
-                else
-                {
-                    forwards = false;
-                }
-                forwards = end < expression.Length ? true : false;
-            }
-            while (backwards)
-            {
-                if (Char.IsDigit(expression[start]))
-                {
-                    start --;
-                }
-                else
-                {
-                    backwards = false;
-                }
-                backwards = start >= 0 ? true : false;
-            }
-            scope.AppendOperand(start + 1, end - 1, expression, false);
+        //     while (forwards)
+        //     {
+        //         if (Char.IsDigit(expression[end]))
+        //         {
+        //             end ++;
+        //         }
+        //         else
+        //         {
+        //             forwards = false;
+        //         }
+        //         forwards = end < expression.Length ? true : false;
+        //     }
+        //     while (backwards)
+        //     {
+        //         if (Char.IsDigit(expression[start]))
+        //         {
+        //             start --;
+        //         }
+        //         else
+        //         {
+        //             backwards = false;
+        //         }
+        //         backwards = start >= 0 ? true : false;
+        //     }
+        //     scope.AppendOperand(start + 1, end - 1, expression, false);
 
-            scope.sign = expression[scope.start] == '-' ? false : true;
+        //     scope.sign = expression[scope.start] == '-' ? false : true;
 
-            scope.start = start;
+        //     scope.start = start;
 
-            scope.end = end;
+        //     scope.end = end;
 
-            return scope;
-        }
+        //     return scope;
+        // }
         public Scope FindScope(int i, string expression)
         {
             char symbol = expression[i];

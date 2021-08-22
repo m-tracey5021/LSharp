@@ -10,7 +10,8 @@ namespace LSharp.Symbols
         Exponent,
         Radical,
         Variable,
-        Constant
+        Constant,
+        None
     }
 }
 

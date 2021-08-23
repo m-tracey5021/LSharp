@@ -15,9 +15,15 @@ namespace LSharp.Parsing
         {
             operands = new List<string>();
         }
-        public void AppendOperand(int start, int end, string expression, bool sign, bool insert)
+        public void AppendOperand(int start, int end, string expression, bool insert)
         {
-            string operand = sign ? expression.Substring(start, (end - start) + 1) : '-' + expression.Substring(start, (end - start) + 1);
+            string operand = 
+            (
+                (expression[start] == '(' && expression[end] == ')') ||
+                (expression[start] == '{' && expression[end] == '}') ||
+                (expression[start] == '[' && expression[end] == ']')
+            ) 
+            ? expression.Substring(start + 1, (end - start) - 1) : expression.Substring(start, (end - start) + 1);
 
             if (insert)
             {
@@ -27,6 +33,24 @@ namespace LSharp.Parsing
             {
                 operands.Add(operand);
             }
+        }
+        public void AssignSign()
+        {
+            if (type == SymbolType.Multiplication || type == SymbolType.Division)
+            {
+                int count = 0;
+
+                foreach (string operand in operands)
+                {
+                    count = operand[0] == '-' ? count + 1 : count;
+                }
+                sign = count % 2 == 0 ? true : false;
+            }
+            else
+            {
+                // some shit
+            }
+            
         }
     }
 }

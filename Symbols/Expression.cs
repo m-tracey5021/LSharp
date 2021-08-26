@@ -1,6 +1,10 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using LSharp.Manipulation;
+using LSharp.Manipulation.SummationStrategies;
+using LSharp.Manipulation.MultiplicationStrategies;
+using LSharp.Manipulation.DivisionStrategies;
 
 namespace LSharp.Symbols
 {
@@ -11,6 +15,7 @@ namespace LSharp.Symbols
         private Dictionary<int, int> parentMap { get; set; }
         private Dictionary<int, List<int>> childMap { get; set; }
         private Dictionary<Symbol, int> reverseTree { get; set; }
+        private IManipulationStrategy manipulationStrategy { get; set; }
         public Expression()
         {
             tree = new Dictionary<int, Symbol>();
@@ -18,13 +23,17 @@ namespace LSharp.Symbols
             parentMap = new Dictionary<int, int>();
             childMap = new Dictionary<int, List<int>>();
         }
-        public int? GetNumericValue(int index)
-        {
-            return tree[index].GetNumericValue();
-        }
         public int GetRoot()
         {
             return root;
+        }
+        public Dictionary<int, Symbol> GetTree()
+        {
+            return tree;
+        }
+        public int? GetNumericValue(int index)
+        {
+            return tree[index].GetNumericValue();
         }
         public Symbol GetNode(int index)
         {
@@ -81,17 +90,52 @@ namespace LSharp.Symbols
 
             return nextChild;
         }
-        public void AddToMap(Symbol node)
+        public int GenerateId()
         {
-            int size = tree.Count;
+            int id = 0;
+
+            while (tree.Keys.Contains(id))
+            {
+                id ++;
+            }
+            return id;
+        }
+        public int AddToMap(Symbol node)
+        {
+            int id = GenerateId();
 
             try 
             {
-                reverseTree.Add(node, size);
+                reverseTree.Add(node, id);
 
-                tree.Add(size, node);
+                tree.Add(id, node);
 
-                childMap[size] = new List<int>();
+                childMap[id] = new List<int>();
+
+                return id;
+            }
+            catch (Exception exception)
+            {
+                throw exception;
+            }
+        }
+        public int AddToMap(Symbol node, int? parent, List<int> children)
+        {
+            int id = GenerateId();
+
+            try 
+            {
+                reverseTree.Add(node, id);
+
+                tree.Add(id, node);
+
+                if (parent != null)
+                {
+                    parentMap[id] = (int) parent;
+                }
+                childMap[id] = children;
+
+                return id;
             }
             catch (Exception exception)
             {
@@ -113,86 +157,128 @@ namespace LSharp.Symbols
         }
         public void SetRoot(Expression expression)
         {
-            if (tree.Count == 0)
-            {
-                tree = expression.tree;
+            tree = expression.tree;
 
-                parentMap = expression.parentMap;
+            parentMap = expression.parentMap;
 
-                childMap = expression.childMap;
+            childMap = expression.childMap;
 
-                reverseTree = expression.reverseTree;
+            reverseTree = expression.reverseTree;
 
-                root = expression.GetRoot();
-            }
-            else
-            {
-                throw new Exception("Tree is not empty");
-            }
+            root = expression.GetRoot();
         }
-        public void AddNode(Symbol parent, Symbol child)
+        public int AppendNode(int parent, Symbol child)
         {
-            if (tree.Count == 0 && parent == null)
-            {
-                AddToMap(child);
+            int index = AddToMap(child);
 
-                root = 0;
-            }
-            else if (tree.Count > 0 && parent != null)
-            {
-                AddToMap(child);
+            int childIndex = tree.Count - 1; 
 
-                int parentIndex = reverseTree[parent];
+            parentMap[childIndex] = parent;
 
-                int childIndex = tree.Count - 1; 
+            childMap[parent].Add(childIndex);
 
-                parentMap[childIndex] = parentIndex;
-
-                childMap[parentIndex].Add(childIndex);
-            }
-            else
-            {
-                throw new Exception("Incorrect format supplied");
-            }
+            return index;
         }
-        public void AddNode(Symbol parent, Expression expression, int transferIndex = 0)
+        public int AppendNode(int parent, Expression expression, int transferIndex = 0)
         {
             Symbol transfer = expression.GetNode(transferIndex);
 
-            AddToMap(transfer);
+            int index = AddToMap(transfer);
 
-            int parentIndex = reverseTree[parent];
+            parentMap[index] = parent;
 
-            parentMap[tree.Count - 1] = parentIndex;
-
-            childMap[parentIndex].Add(reverseTree[transfer]); 
+            childMap[parent].Add(index); 
 
             foreach (int child in expression.GetChildren(transferIndex))
             {
-                AddNode(transfer, expression, child);
+                AppendNode(index, expression, child);
             }
+            return index;
         }
-        public void AddNode(Symbol parent, int child)
+        public int AppendNode(int parent, int child)
         {
-            AddNode(parent, CopySubTree(child));
+            return AppendNode(parent, CopySubTree(child));
         }
-        public void AddNode(Symbol parent, int child, Expression source)
+        public int AppendNode(int parent, int child, Expression source)
         {
-            AddNode(parent, source.CopySubTree(child));
+            return AppendNode(parent, source.CopySubTree(child));
         }
-        public void AddBulkNodes(Symbol parent, List<int> children)
+        public void AppendBulkNodes(int parent, List<int> children)
         {
             foreach (int child in children)
             {
-                AddNode(parent, CopySubTree(child));
+                AppendNode(parent, CopySubTree(child));
             }
         }
-        public void AddBulkNodes(Symbol parent, List<int> children, Expression source)
+        public void AppendBulkNodes(int parent, List<int> children, Expression source)
         {
             foreach (int child in children)
             {
-                AddNode(parent, source.CopySubTree(child));
+                AppendNode(parent, source.CopySubTree(child));
             }
+        }
+        public void ReplaceNode(int index, Symbol symbol)
+        {
+            Symbol replaced = tree[index];
+
+            tree[index] = symbol;
+
+            reverseTree[symbol] = index;
+
+            reverseTree.Remove(replaced);
+        }
+        public void ReplaceNode(int index, Expression expression)
+        {
+            int? parent = GetParent(index);
+
+            if (parent == null)
+            {
+                SetRoot(expression);
+            }
+            else if (parent != null && tree.Count != 0)
+            {
+                int otherRoot = expression.GetRoot();
+
+                tree[index] = expression.GetNode(otherRoot);
+
+                while (GetChildren(index).Count != 0)
+                {
+                    RemoveNode(GetChild(index, 0));
+                }
+                foreach (int otherChild in expression.GetChildren(otherRoot))
+                {
+                    AppendNode(index, expression, otherChild);
+                }                
+            }
+            else
+            {
+                throw new Exception("Node does not exist in tree");
+            }
+        }
+        public void RemoveNode(int index, bool startIndex = true)
+        {
+            foreach (int child in GetChildren(index))
+            {
+                RemoveNode(child, false);
+            }
+            if (startIndex && index != GetRoot())
+            {
+                int? parent = GetParent(index);
+
+                if (parent != null)
+                {
+                    childMap[(int) parent].Remove(index);
+                }
+            }
+            Symbol removed = tree[index];
+
+            tree.Remove(index);
+
+            parentMap.Remove(index);
+
+            childMap.Remove(index);
+            
+            reverseTree.Remove(removed);
         }
         public Expression Sum()
         {
@@ -206,9 +292,9 @@ namespace LSharp.Symbols
 
             result.SetRoot(mul);
 
-            result.AddNode(mul, CopySubTree(lhs));
+            result.AppendNode(0, CopySubTree(lhs));
 
-            result.AddNode(mul, CopySubTree(rhs));
+            result.AppendNode(0, CopySubTree(rhs));
 
             return result;
         }
@@ -222,7 +308,7 @@ namespace LSharp.Symbols
 
             foreach (int child in children)
             {
-                result.AddNode(mul, CopySubTree(child));
+                result.AppendNode(0, CopySubTree(child));
             }
             return result;
         }
@@ -356,274 +442,37 @@ namespace LSharp.Symbols
             
             copiedExpression.childMap = new Dictionary<int, List<int>>(childMap);
 
-            foreach (Symbol symbol in tree.Values)
+            foreach (int node in tree.Keys)
             {
-                Symbol copy = symbol.Copy();
+                Symbol copy = tree[node].Copy();
 
-                copiedExpression.AddToMap(copy);
+                int? parent = GetParent(node);
+
+                List<int> children = childMap[node];
+
+                copiedExpression.AddToMap(copy, parent, children);
             }
             return copiedExpression;
         }
-        public Expression CopySubTree(int parent, Symbol copiedParent = null, Expression copiedExpression = null)
+        public Expression CopySubTree(int parent, int? copiedParent = null, Expression copiedExpression = null)
         {
             if (copiedExpression == null)
             {
                 copiedExpression = new Expression();
 
-                copiedParent = GetNode(parent).Copy();
+                copiedParent = 0;
 
-                copiedExpression.SetRoot(copiedParent);
+                copiedExpression.SetRoot(GetNode(parent).Copy());
             }
             foreach (int child in childMap[parent])
             {
                 Symbol copiedChild = GetNode(child).Copy();
 
-                copiedExpression.AddNode(copiedParent, copiedChild);
+                int index = copiedExpression.AppendNode((int) copiedParent, copiedChild);
 
-                CopySubTree(child, copiedChild, copiedExpression);
+                CopySubTree(child, index, copiedExpression);
             }
             return copiedExpression;
-        }
-        public bool IsLikeTerm(int first, int second)
-        {
-            if (GetNode(first).IsMultiplication() && GetNode(second).IsMultiplication())
-            {
-                List<int> firstTerms = GetTerms(first);
-
-                List<int> secondTerms = GetTerms(second);
-
-                if (firstTerms.Count != secondTerms.Count)
-                {
-                    return false;
-                }
-                else
-                {
-                    for (int i = 0; i < firstTerms.Count; i ++)
-                    {
-                        if (!IsEqual(firstTerms[i], secondTerms[i]))
-                        {
-                            return false;
-                        }
-                    }
-                    return true;
-                }
-            }
-            else
-            {
-                return false;
-            }
-        }
-        public Expression SumLikeTerms(int index)
-        {
-            Expression result = new Expression();
-
-            Symbol add = new Operation(true, SymbolType.Summation);
-
-            result.SetRoot(add);
-
-            int totalSum = 0;
-
-            if (GetNode(index).IsSummation())
-            {
-                List<int> children = GetChildren(index);
-
-                List<int> visited = new List<int>();
-
-                for (int i = 0; i < children.Count; i ++)
-                {
-                    if (!visited.Contains(i))
-                    {
-                        int compared = children[i];
-
-                        visited.Add(i);
-
-                        totalSum += GetCoefficient(children[i]);
-
-                        for (int j = i + 1; j < children.Count; j ++)
-                        {
-                            if (!visited.Contains(j))
-                            {
-                                if (IsLikeTerm(compared, children[j]))
-                                {
-                                    visited.Add(j);
-
-                                    totalSum += GetCoefficient(children[j]);
-                                }
-                            }
-                        }
-                        Expression summed = CopySubTree(children[i]);
-
-                        if (totalSum > 1)
-                        {
-                            summed.SetCoefficient(0, totalSum);    
-                        }
-
-                        result.AddNode(add, summed);
-                    }
-                    
-                } 
-                return result;
-            }
-            else
-            {
-                return this;
-            }
-        }
-        public List<Expression> Distribute(List<int> symbols, int currentIndex, Dictionary<int, int> sumMap)
-        {
-            List<Expression> multiplications = new List<Expression>();
-
-            List<int> children = new List<int>();
-
-            if (GetNode(symbols[currentIndex]).IsSummation())
-            {
-                children = GetChildren(symbols[currentIndex]);
-            }
-            else
-            {
-                children.Add(symbols[currentIndex]);
-            }
-            for (int i = 0; i < children.Count; i ++)
-            {
-                sumMap[symbols[currentIndex]] = children[i];
-
-                if (currentIndex != symbols.Count - 1)
-                {
-                    multiplications.AddRange(Distribute(symbols, currentIndex + 1, sumMap));
-                }
-                else
-                {
-                    multiplications.Add(Multiply(sumMap.Values.ToList()));
-                }
-            }
-            return multiplications;
-        }
-        public Expression Distribute(int index)
-        {
-            if (GetNode(index).IsMultiplication())
-            {
-                Expression result = new Expression();
-
-                Symbol add = new Operation(true, SymbolType.Summation);
-
-                result.SetRoot(add);
-
-                foreach(Expression multiplication in Distribute(GetChildren(index), 0, new Dictionary<int, int>()))
-                {
-                    result.AddNode(add, multiplication);
-                }
-                return result;
-            }
-            else
-            {
-                return null;
-            }
-        }
-        public Expression Cancel(int index)
-        {
-            // factor first
-
-            if (GetNode(index).IsDivision())
-            {
-                int num = GetChild(index, 0);
-
-                int denom = GetChild(index, 1);
-
-                List<int> numChildren = new List<int>();
-
-                List<int> denomChildren = new List<int>();
-
-                if (GetNode(num).IsMultiplication())
-                {
-                    numChildren = GetChildren(num);
-                }
-                else
-                {
-                    numChildren.Add(num);
-                }
-                if (GetNode(denom).IsMultiplication())
-                {
-                    denomChildren = GetChildren(denom);
-                }
-                else
-                {
-                    denomChildren.Add(denom);
-                }
-                List<int> cancelledNums = new List<int>();
-
-                List<int> cancelledDenoms = new List<int>();
-                
-                for (int i = 0; i < numChildren.Count; i ++)
-                {
-                    bool canCancel = false;
-
-                    for (int j = 0; j < denomChildren.Count; j ++)
-                    {
-                        if (IsEqual(numChildren[i], denomChildren[j]))
-                        {
-                            canCancel = true;        
-                        }
-                    }
-                    if(!canCancel)
-                    {
-                        cancelledNums.Add(numChildren[i]);
-                    }
-                }
-                for (int i = 0; i < denomChildren.Count; i ++)
-                {
-                    bool canCancel = false;
-
-                    for (int j = 0; j < numChildren.Count; j ++)
-                    {
-                        if (IsEqual(denomChildren[i], numChildren[j]))
-                        {
-                            canCancel = true;
-                        }
-                    }
-                    if (!canCancel)
-                    {
-                        cancelledDenoms.Add(denomChildren[i]);
-                    }
-                }
-                Expression result = new Expression();
-
-                if (cancelledNums.Count == 0 && cancelledDenoms.Count == 0)
-                {
-                    result.SetRoot(new Constant(true, 1));
-                }
-                else if (cancelledNums.Count == 1 && cancelledDenoms.Count == 0)
-                {
-                    result.SetRoot(CopySubTree(cancelledNums[0]));
-                    
-                }
-                else if (cancelledNums.Count == 0 && cancelledDenoms.Count == 1)
-                {
-                    result.SetRoot(CopySubTree(cancelledDenoms[0]));
-                }
-                else
-                {
-                    Symbol div = new Operation(true, SymbolType.Division);
-
-                    Symbol numMul = new Operation(true, SymbolType.Multiplication);
-
-                    Symbol denomMul = new Operation(true, SymbolType.Multiplication);
-
-                    result.SetRoot(div);
-
-                    result.AddNode(div, numMul);
-
-                    result.AddNode(div, denomMul);
-
-                    result.AddBulkNodes(numMul, cancelledNums, this);
-
-                    result.AddBulkNodes(denomMul, cancelledDenoms, this);
-                }
-                return result;
-            }
-            else
-            {
-                return null;
-            }
         }
         public int GetCoefficient(int index)
         {
@@ -659,7 +508,7 @@ namespace LSharp.Symbols
                         return;
                     }
                 }
-                AddNode(GetNode(index), new Constant(true, coefficient));
+                AppendNode(index, new Constant(true, coefficient));
             }
         }
         public List<int> GetTerms(int index)
@@ -682,6 +531,23 @@ namespace LSharp.Symbols
                 return null;
             }
         }
+        public Expression Manipulate(ManipulationInstruction instruction)
+        {
+            if (instruction == ManipulationInstruction.SumLikeTerms)
+            {
+                manipulationStrategy = new SumLikeTermManipulation();
+            }
+            else if (instruction == ManipulationInstruction.Distribute)
+            {
+                manipulationStrategy = new DistributeManipulation();
+            }
+            else
+            {
+                return null;
+            }
+            return manipulationStrategy.Manipulate(this);
+        }
+
         public string ToString(string result, int index)
         {
             Symbol symbol = GetNode(index);

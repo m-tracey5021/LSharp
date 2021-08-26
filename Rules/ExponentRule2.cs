@@ -66,15 +66,15 @@ namespace LSharp.Rules
 
             result.SetRoot(division);
 
-            result.AddNode(division, exp1);
+            int lhs = result.AppendNode(0, exp1);
 
-            result.AddNode(division, exp2);
+            int rhs = result.AppendNode(0, exp2);
 
-            result.AddNode(exp1, a);
-            result.AddNode(exp1, m1);
+            result.AppendNode(lhs, a);
+            result.AppendNode(lhs, m1);
 
-            result.AddNode(exp2, b);
-            result.AddNode(exp2, m2);
+            result.AppendNode(rhs, b);
+            result.AppendNode(rhs, m2);
 
             return result;
         }

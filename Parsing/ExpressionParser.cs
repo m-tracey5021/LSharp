@@ -6,6 +6,11 @@ namespace LSharp.Parsing
 {
     public class ExpressionParser
     {
+        public Expression parseTree { get; set; }
+        public ExpressionParser()
+        {
+            parseTree = new Expression();
+        }
         public Dictionary<SymbolType, Dictionary<string, List<char>>> terminatingCharacters = new Dictionary<SymbolType, Dictionary<string, List<char>>>()
         {
             { 
@@ -441,21 +446,71 @@ namespace LSharp.Parsing
                 if (Char.IsLetter(expression[i]) || 
                     Char.IsDigit(expression[i]) || 
                     expression[i] == '+' ||
-                    expression[i] == '-' ||
+                    expression[i] == '*' ||
                     expression[i] == '/' ||
                     expression[i] == '^' ||
                     expression[i] == 'v')
                 {
                     Scope ithScope = FindScope(i, expression);
 
-                    if ((ithScope.end - ithScope.start) > (mainScope.end - mainScope.start))
+                    if (ithScope != null)
                     {
-                        mainScope = ithScope;
-                    }
-                    i = ithScope.end;
+                        if ((ithScope.end - ithScope.start) > (mainScope.end - mainScope.start))
+                        {
+                            mainScope = ithScope;
+
+                            i = ithScope.end - 1;
+                        }
+                        
+                    }                  
                 }
             }
             return mainScope;
+        }
+        public void ParseExpression(string expression, int? parent = null)
+        {
+            Scope mainScope = FindMainScope(expression);
+
+            Symbol child = null;
+
+            int index;
+
+            if (mainScope.type == SymbolType.Variable)
+            {
+                child = new Variable(mainScope.sign, Char.Parse(mainScope.operands[0]));
+
+                index = AddToTree(parent, child);
+            } 
+            else if (mainScope.type == SymbolType.Constant)
+            {
+                child = new Constant(mainScope.sign, Int32.Parse(mainScope.operands[0]));
+
+                index = AddToTree(parent, child);
+            }
+            else
+            {
+                child = new Operation(mainScope.sign, mainScope.type);
+
+                index = AddToTree(parent, child);
+
+                foreach (string operand in mainScope.operands)
+                {
+                    ParseExpression(operand, index);
+                }
+            }
+        }
+        public int AddToTree(int? parent, Symbol child)
+        {
+            if (parent == null)
+            {
+                parseTree.SetRoot(child);
+
+                return 0;
+            }
+            else
+            {
+                return parseTree.AppendNode((int) parent, child);
+            }
         }
     }
 }

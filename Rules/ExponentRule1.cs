@@ -81,13 +81,13 @@ namespace LSharp.Rules
 
             result.SetRoot(exponent);
 
-            result.AddNode(exponent, a);
+            result.AppendNode(0, a);
 
-            result.AddNode(exponent, addition);
+            int addIndex = result.AppendNode(0, addition);
 
-            result.AddNode(addition, m);
+            result.AppendNode(addIndex, m);
 
-            result.AddNode(addition, n);
+            result.AppendNode(addIndex, n);
 
             return result;
         }

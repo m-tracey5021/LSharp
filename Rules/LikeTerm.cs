@@ -83,7 +83,7 @@ namespace LSharp.Rules
 
             result.SetRoot(mul);
 
-            result.AddNode(mul, total);
+            result.AppendNode(0, total);
             // result.AddNode(mul, variable);
 
             return result;

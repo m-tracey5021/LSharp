@@ -73,11 +73,11 @@ namespace LSharp.Rules
 
             result.SetRoot(div);
 
-            result.AddNode(div, one);
-            result.AddNode(div, exp);
+            int numIndex = result.AppendNode(0, one);
+            int denomIndex = result.AppendNode(0, exp);
 
-            result.AddNode(exp, a);
-            result.AddNode(exp, n);
+            result.AppendNode(numIndex, a);
+            result.AppendNode(denomIndex, n);
 
             return result;
         }

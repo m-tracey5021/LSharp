@@ -6,10 +6,9 @@ namespace LSharp.Parsing
 {
     public class ExpressionParser
     {
-        public Expression parseTree { get; set; }
         public ExpressionParser()
         {
-            parseTree = new Expression();
+
         }
         public Dictionary<SymbolType, Dictionary<string, List<char>>> terminatingCharacters = new Dictionary<SymbolType, Dictionary<string, List<char>>>()
         {
@@ -467,8 +466,12 @@ namespace LSharp.Parsing
             }
             return mainScope;
         }
-        public void ParseExpression(string expression, int? parent = null)
+        public Expression ParseExpression(string expression, int? parent = null, Expression parseTree = null)
         {
+            if (parseTree == null)
+            {
+                parseTree = new Expression();
+            }
             Scope mainScope = FindMainScope(expression);
 
             Symbol child = null;
@@ -479,27 +482,28 @@ namespace LSharp.Parsing
             {
                 child = new Variable(mainScope.sign, Char.Parse(mainScope.operands[0]));
 
-                index = AddToTree(parent, child);
+                index = AddToTree(parent, child, parseTree);
             } 
             else if (mainScope.type == SymbolType.Constant)
             {
                 child = new Constant(mainScope.sign, Int32.Parse(mainScope.operands[0]));
 
-                index = AddToTree(parent, child);
+                index = AddToTree(parent, child, parseTree);
             }
             else
             {
                 child = new Operation(mainScope.sign, mainScope.type);
 
-                index = AddToTree(parent, child);
+                index = AddToTree(parent, child, parseTree);
 
                 foreach (string operand in mainScope.operands)
                 {
-                    ParseExpression(operand, index);
+                    parseTree = ParseExpression(operand, index, parseTree);
                 }
             }
+            return parseTree;
         }
-        public int AddToTree(int? parent, Symbol child)
+        public int AddToTree(int? parent, Symbol child, Expression parseTree)
         {
             if (parent == null)
             {

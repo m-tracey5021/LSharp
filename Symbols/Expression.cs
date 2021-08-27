@@ -217,6 +217,13 @@ namespace LSharp.Symbols
                 AppendNode(parent, source.CopySubTree(child));
             }
         }
+        public void AppendBulkNodes(int parent, List<Expression> children)
+        {
+            foreach (Expression child in children)
+            {
+                AppendNode(parent, child);
+            }
+        }
         public void ReplaceNode(int index, Symbol symbol)
         {
             Symbol replaced = tree[index];
@@ -280,9 +287,29 @@ namespace LSharp.Symbols
             
             reverseTree.Remove(removed);
         }
-        public Expression Sum()
+        public void Negate()
+        {
+            GetNode(root).sign = false;
+        }
+        public Expression Add()
         {
             throw new NotImplementedException();
+        }
+        public Expression Subtract(Expression other)
+        {
+            Expression sub = new Expression();
+
+            sub.SetRoot(new Operation(true, SymbolType.Summation));
+
+            sub.AppendNode(0, CopyTree());
+
+            Expression lhs = other.CopyTree();
+
+            lhs.Negate();
+
+            sub.AppendNode(0, lhs);
+
+            return sub;
         }
         public Expression Multiply(int lhs, int rhs)
         {
@@ -324,38 +351,42 @@ namespace LSharp.Symbols
         {
             throw new NotImplementedException();
         }
-        public bool IsEqual(int first, int second)
-        {
-            if (GetNode(first).GetValue() == GetNode(second).GetValue())
-            {
-                List<int> firstChildren = GetChildren(first);
+        // public bool IsEqual(int first, int second)
+        // {
+        //     if (GetNode(first).GetValue() == GetNode(second).GetValue())
+        //     {
+        //         List<int> firstChildren = GetChildren(first);
 
-                List<int> secondChildren = GetChildren(second);
+        //         List<int> secondChildren = GetChildren(second);
 
-                if (firstChildren.Count != secondChildren.Count)
-                {
-                    return false;
-                }
-                else
-                {
-                    for (int i = 0; i < firstChildren.Count; i ++)
-                    {
-                        if (!IsEqual(firstChildren[i], secondChildren[i]))
-                        {
-                            return false;
-                        }
-                    }
-                    return true;
-                }
-            }
-            else
-            {
-                return false;
-            }
-        }
-        public bool IsEqual(int first, int second, Expression other)
+        //         if (firstChildren.Count != secondChildren.Count)
+        //         {
+        //             return false;
+        //         }
+        //         else
+        //         {
+        //             for (int i = 0; i < firstChildren.Count; i ++)
+        //             {
+        //                 if (!IsEqual(firstChildren[i], secondChildren[i]))
+        //                 {
+        //                     return false;
+        //                 }
+        //             }
+        //             return true;
+        //         }
+        //     }
+        //     else
+        //     {
+        //         return false;
+        //     }
+        // }
+        public bool IsEqual(int first, int second, Expression other = null)
         {
-            if (GetNode(first).GetValue() == GetNode(second).GetValue())
+            if (other == null)
+            {
+                other = this;
+            }
+            if (GetNode(first).GetValue() == other.GetNode(second).GetValue())
             {
                 List<int> firstChildren = GetChildren(first);
 
@@ -386,17 +417,68 @@ namespace LSharp.Symbols
         {
             return IsEqual(root, other.GetRoot());
         }
-        public bool IsEqualByBase(int first, int second)
+        // public bool IsEqualByBase(int first, int second)
+        // {
+        //     Symbol firstSymbol = GetNode(first);
+
+        //     Symbol secondSymbol = GetNode(second);
+            
+        //     if (GetNode(first).GetValue() == GetNode(second).GetValue())
+        //     {
+        //         if (GetNode(first).IsExponent() && GetNode(second).IsExponent())
+        //         {
+        //             if (!IsEqual(GetChild(first, 0), GetChild(second, 0))) // ignore the exponents
+        //             {
+        //                 return false;
+        //             }
+        //             else
+        //             {
+        //                 return true;
+        //             }
+        //         }
+        //         else
+        //         {
+        //             List<int> firstChildren = GetChildren(first);
+
+        //             List<int> secondChildren = GetChildren(second);
+
+        //             if (firstChildren.Count != secondChildren.Count)
+        //             {
+        //                 return false;
+        //             }
+        //             else
+        //             {
+        //                 for (int i = 0; i < firstChildren.Count; i ++)
+        //                 {
+        //                     if (!IsEqual(firstChildren[i], secondChildren[i]))
+        //                     {
+        //                         return false;
+        //                     }
+        //                 }
+        //                 return true;
+        //             }
+        //         }
+        //     }
+        //     else
+        //     {
+        //         return false;
+        //     }
+        // }
+        public bool IsEqualByBase(int first, int second, Expression other = null)
         {
+            if (other == null)
+            {
+                other = this;
+            }
             Symbol firstSymbol = GetNode(first);
 
-            Symbol secondSymbol = GetNode(second);
+            Symbol secondSymbol = other.GetNode(second);
             
-            if (GetNode(first).GetValue() == GetNode(second).GetValue())
+            if (GetNode(first).GetValue() == other.GetNode(second).GetValue())
             {
-                if (GetNode(first).IsExponent() && GetNode(second).IsExponent())
+                if (GetNode(first).IsExponent() && other.GetNode(second).IsExponent())
                 {
-                    if (!IsEqual(GetChild(first, 0), GetChild(second, 0))) // ignore the exponents
+                    if (!IsEqual(GetChild(first, 0), other.GetChild(second, 0))) // ignore the exponents
                     {
                         return false;
                     }
@@ -409,7 +491,7 @@ namespace LSharp.Symbols
                 {
                     List<int> firstChildren = GetChildren(first);
 
-                    List<int> secondChildren = GetChildren(second);
+                    List<int> secondChildren = other.GetChildren(second);
 
                     if (firstChildren.Count != secondChildren.Count)
                     {
@@ -427,12 +509,15 @@ namespace LSharp.Symbols
                         return true;
                     }
                 }
-                
             }
             else
             {
                 return false;
             }
+        }
+        public bool IsEqualByBase(Expression other)
+        {
+            return IsEqualByBase(root, other.GetRoot());
         }
         public Expression CopyTree()
         {
@@ -541,22 +626,30 @@ namespace LSharp.Symbols
             {
                 manipulationStrategy = new DistributeManipulation();
             }
+            else if (instruction == ManipulationInstruction.Cancel)
+            {
+                manipulationStrategy = new CancelManipulation();
+            }
             else
             {
                 return null;
             }
-            return manipulationStrategy.Manipulate(this);
+            return manipulationStrategy.Manipulate(CopyTree());
         }
 
-        public string ToString(string result, int index)
+        public string ToString(int index)
         {
             Symbol symbol = GetNode(index);
 
-            string symbolStr = symbol.ToString();
+            int? parent = GetParent(index);
 
-            if (symbol.IsOperation())
+            if (symbol.IsAtomic())
             {
-                result += '(';
+                return symbol.ToString();
+            }
+            else
+            {
+                string operation = "";
 
                 List<int> children = childMap[index];
 
@@ -564,20 +657,29 @@ namespace LSharp.Symbols
                 {
                     if (i == 0)
                     {
-                        result = ToString(result, children[i]);
+                        operation += ToString(children[i]);
                     }
                     else
-                    {
-                        result = ToString(result + symbolStr, children[i]);
+                    {   
+                        operation += symbol.ToString() + ToString(children[i]);
                     }
                 }
-                result += ')';
+                if (!symbol.sign)
+                {
+                    return "-(" + operation + ")";
+                }
+                else
+                {
+                    if (parent == null)
+                    {
+                        return operation;
+                    }
+                    else
+                    {   
+                        return "(" + operation + ")";
+                    }
+                }
             }
-            else
-            {
-                result += symbolStr;
-            }
-            return result;
         }
 
         public override string ToString()
@@ -590,7 +692,7 @@ namespace LSharp.Symbols
             }
             else
             {
-                return ToString(result, root);
+                return ToString(root);
             }
         }
     }

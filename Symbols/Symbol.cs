@@ -111,6 +111,24 @@ namespace LSharp.Symbols
                 return false;
             }
         }
+        public virtual bool IsParenthesised()
+        {
+            if (IsAtomic())
+            {
+                return false;
+            }
+            else
+            {
+                if (!sign)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
         public abstract string GetValue();
         public abstract int? GetNumericValue();
         public abstract void SetValue(char value);
@@ -119,7 +137,15 @@ namespace LSharp.Symbols
 
         public override string ToString()
         {
-            return GetValue();
+            if (!sign && IsAtomic())
+            {
+                return "-" + GetValue();
+            }
+            else
+            {
+                return GetValue();
+            }
+            
         }
     }
 }

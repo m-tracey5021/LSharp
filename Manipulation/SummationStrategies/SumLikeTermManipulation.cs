@@ -8,11 +8,9 @@ namespace LSharp.Manipulation.SummationStrategies
     {
         public Expression Manipulate(Expression expression)
         {
-            Expression result = expression.CopyTree();
+            ChainManipulation(expression, expression.GetRoot());
 
-            ChainManipulation(result, result.GetRoot());
-
-            return result;
+            return expression;
         } 
         public void ChainManipulation(Expression expression, int index)
         {
@@ -72,8 +70,6 @@ namespace LSharp.Manipulation.SummationStrategies
                             summed.SetCoefficient(0, totalSum);    
                         }
                         terms.Add(summed);
-
-                        result.AppendNode(0, summed);
                     }
                 } 
                 if (terms.Count > 1)

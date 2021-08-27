@@ -9,11 +9,9 @@ namespace LSharp.Manipulation.MultiplicationStrategies
     {
         public Expression Manipulate(Expression expression)
         {
-            Expression result = expression.CopyTree();
+            ChainManipulation(expression, expression.GetRoot());
 
-            ChainManipulation(result, result.GetRoot());
-
-            return result;
+            return expression;
         } 
         public void ChainManipulation(Expression expression, int index)
         {

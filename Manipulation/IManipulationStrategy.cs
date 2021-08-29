@@ -6,6 +6,6 @@ namespace LSharp.Manipulation
 {
     public interface IManipulationStrategy
     {
-        Expression Manipulate(Expression expression);
+        Expression Manipulate();
     }
 }

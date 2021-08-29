@@ -3,21 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using LSharp.Symbols;
 
-namespace LSharp.Manipulation.MultiplicationStrategies
+namespace LSharp.Manipulation.MultiplicationManipulation
 {
-    public class DistributeManipulation : IManipulationStrategy
+    public class DistributionStrategy : IManipulationStrategy
     {
-        public Expression Manipulate(Expression expression)
+        public Expression expression { get; set; }
+        public DistributionStrategy(Expression expression)
         {
-            ChainManipulation(expression, expression.GetRoot());
+            this.expression = expression;
+        }
+        public Expression Manipulate()
+        {
+            ChainManipulation(expression.GetRoot());
 
             return expression;
         } 
-        public void ChainManipulation(Expression expression, int index)
+        public void ChainManipulation(int index)
         {
             foreach (int child in expression.GetChildren(index))
             {
-                ChainManipulation(expression, child);
+                ChainManipulation(child);
             }
             ManipulationResult manipulation = Distribute(expression, index);
 
@@ -28,7 +33,7 @@ namespace LSharp.Manipulation.MultiplicationStrategies
         }  
         public ManipulationResult Distribute(Expression expression, int index)
         {
-            if (expression.GetNode(index).IsMultiplication())
+            if (expression.IsMultiplication(index))
             {
                 Expression result = new Expression();
 
@@ -53,7 +58,7 @@ namespace LSharp.Manipulation.MultiplicationStrategies
 
             List<int> children = new List<int>();
 
-            if (expression.GetNode(symbols[currentIndex]).IsSummation())
+            if (expression.IsSummation(symbols[currentIndex]))
             {
                 children = expression.GetChildren(symbols[currentIndex]);
             }

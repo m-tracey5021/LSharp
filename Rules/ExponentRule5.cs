@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using LSharp.Symbols;
+using LSharp.Comparison;
 
 namespace LSharp.Rules
 {
@@ -45,7 +46,8 @@ namespace LSharp.Rules
                 }
                 else if (stage == 5)
                 {
-                    if (!expression.IsEqual(index, variableIndex))
+                    if (!expression.Compare(ComparisonInstruction.IsEqual, first: index, second: variableIndex))
+                    // if (!expression.IsEqual(index, variableIndex))
                     {
                         return false;
                     }

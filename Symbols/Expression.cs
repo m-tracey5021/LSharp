@@ -1,10 +1,14 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using LSharp.Comparison;
+using LSharp.Comparison.EqualityComparison;
+using LSharp.Evaluation;
+using LSharp.Evaluation.ConstantEvaluation;
 using LSharp.Manipulation;
-using LSharp.Manipulation.SummationStrategies;
-using LSharp.Manipulation.MultiplicationStrategies;
-using LSharp.Manipulation.DivisionStrategies;
+using LSharp.Manipulation.SummationManipulation;
+using LSharp.Manipulation.MultiplicationManipulation;
+using LSharp.Manipulation.DivisionManipulation;
 
 namespace LSharp.Symbols
 {
@@ -15,6 +19,8 @@ namespace LSharp.Symbols
         private Dictionary<int, int> parentMap { get; set; }
         private Dictionary<int, List<int>> childMap { get; set; }
         private Dictionary<Symbol, int> reverseTree { get; set; }
+        private IComparisonStrategy comparisonStrategy { get; set; }
+        private IEvaluationStrategy evaluationStrategy { get; set; }
         private IManipulationStrategy manipulationStrategy { get; set; }
         public Expression()
         {
@@ -23,6 +29,15 @@ namespace LSharp.Symbols
             parentMap = new Dictionary<int, int>();
             childMap = new Dictionary<int, List<int>>();
         }
+
+        /*
+        =================
+
+            Retrieval
+
+        =================
+        */
+
         public int GetRoot()
         {
             return root;
@@ -90,6 +105,145 @@ namespace LSharp.Symbols
 
             return nextChild;
         }
+
+        /*
+        ===================
+
+            Identifying
+
+        ===================    
+        */
+
+        public bool IsOperation(int index)
+        {
+            SymbolType type = GetNode(index).type;
+
+            if (type == SymbolType.Summation ||
+                    type == SymbolType.Multiplication || 
+                    type == SymbolType.Division ||
+                    type == SymbolType.Exponent ||
+                    type == SymbolType.Radical)
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
+        }
+        public bool IsSummation(int index)
+        {
+            SymbolType type = GetNode(index).type;
+
+            if (type == SymbolType.Summation)
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
+        }
+        public bool IsMultiplication(int index)
+        {
+            SymbolType type = GetNode(index).type;
+
+            if (type == SymbolType.Multiplication)
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
+        }
+        public bool IsDivision(int index)
+        {
+            SymbolType type = GetNode(index).type;
+
+            if (type == SymbolType.Division)
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
+        }
+        public bool IsExponent(int index)
+        {
+            SymbolType type = GetNode(index).type;
+
+            if (type == SymbolType.Exponent)
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
+        }
+        public bool IsRadical(int index)
+        {
+            SymbolType type = GetNode(index).type;
+
+            if (type == SymbolType.Radical)
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
+        }
+        public bool IsAtomic(int index)
+        {
+            SymbolType type = GetNode(index).type;
+
+            if (type == SymbolType.Variable || type == SymbolType.Constant)
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
+        }
+        public bool IsVariable(int index)
+        {
+            SymbolType type = GetNode(index).type;
+
+            if (type == SymbolType.Variable)
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
+        }
+        public bool IsConstant(int index)
+        {
+            SymbolType type = GetNode(index).type;
+
+            if (type == SymbolType.Constant)
+            {
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
+        }
+
+        /*
+        =============================
+
+            Generating and Adding
+
+        =============================
+        */
+
         public int GenerateId()
         {
             int id = 0;
@@ -224,6 +378,15 @@ namespace LSharp.Symbols
                 AppendNode(parent, child);
             }
         }
+
+        /*
+        ===============================
+
+            Replacing and Removing
+
+        ===============================
+        */
+
         public void ReplaceNode(int index, Symbol symbol)
         {
             Symbol replaced = tree[index];
@@ -287,6 +450,15 @@ namespace LSharp.Symbols
             
             reverseTree.Remove(removed);
         }
+
+        /*
+        ==================
+
+            Arithmetic
+
+        ==================    
+        */
+
         public void Negate()
         {
             GetNode(root).sign = false;
@@ -351,13 +523,17 @@ namespace LSharp.Symbols
         {
             throw new NotImplementedException();
         }
-        // public bool IsEqual(int first, int second)
+        // public bool IsEqual(int first, int second, Expression other = null)
         // {
-        //     if (GetNode(first).GetValue() == GetNode(second).GetValue())
+        //     if (other == null)
+        //     {
+        //         other = this;
+        //     }
+        //     if (GetNode(first).GetValue() == other.GetNode(second).GetValue())
         //     {
         //         List<int> firstChildren = GetChildren(first);
 
-        //         List<int> secondChildren = GetChildren(second);
+        //         List<int> secondChildren = other.GetChildren(second);
 
         //         if (firstChildren.Count != secondChildren.Count)
         //         {
@@ -367,7 +543,7 @@ namespace LSharp.Symbols
         //         {
         //             for (int i = 0; i < firstChildren.Count; i ++)
         //             {
-        //                 if (!IsEqual(firstChildren[i], secondChildren[i]))
+        //                 if (!IsEqual(firstChildren[i], secondChildren[i], other))
         //                 {
         //                     return false;
         //                 }
@@ -380,54 +556,25 @@ namespace LSharp.Symbols
         //         return false;
         //     }
         // }
-        public bool IsEqual(int first, int second, Expression other = null)
-        {
-            if (other == null)
-            {
-                other = this;
-            }
-            if (GetNode(first).GetValue() == other.GetNode(second).GetValue())
-            {
-                List<int> firstChildren = GetChildren(first);
-
-                List<int> secondChildren = other.GetChildren(second);
-
-                if (firstChildren.Count != secondChildren.Count)
-                {
-                    return false;
-                }
-                else
-                {
-                    for (int i = 0; i < firstChildren.Count; i ++)
-                    {
-                        if (!IsEqual(firstChildren[i], secondChildren[i], other))
-                        {
-                            return false;
-                        }
-                    }
-                    return true;
-                }
-            }
-            else
-            {
-                return false;
-            }
-        }
-        public bool IsEqual(Expression other)
-        {
-            return IsEqual(root, other.GetRoot());
-        }
-        // public bool IsEqualByBase(int first, int second)
+        // public bool IsEqual(Expression other)
         // {
+        //     return IsEqual(root, other.GetRoot());
+        // }
+        // public bool IsEqualByBase(int first, int second, Expression other = null)
+        // {
+        //     if (other == null)
+        //     {
+        //         other = this;
+        //     }
         //     Symbol firstSymbol = GetNode(first);
 
-        //     Symbol secondSymbol = GetNode(second);
+        //     Symbol secondSymbol = other.GetNode(second);
             
-        //     if (GetNode(first).GetValue() == GetNode(second).GetValue())
+        //     if (GetNode(first).GetValue() == other.GetNode(second).GetValue())
         //     {
-        //         if (GetNode(first).IsExponent() && GetNode(second).IsExponent())
+        //         if (GetNode(first).IsExponent() && other.GetNode(second).IsExponent())
         //         {
-        //             if (!IsEqual(GetChild(first, 0), GetChild(second, 0))) // ignore the exponents
+        //             if (!IsEqual(GetChild(first, 0), other.GetChild(second, 0))) // ignore the exponents
         //             {
         //                 return false;
         //             }
@@ -440,7 +587,7 @@ namespace LSharp.Symbols
         //         {
         //             List<int> firstChildren = GetChildren(first);
 
-        //             List<int> secondChildren = GetChildren(second);
+        //             List<int> secondChildren = other.GetChildren(second);
 
         //             if (firstChildren.Count != secondChildren.Count)
         //             {
@@ -464,79 +611,41 @@ namespace LSharp.Symbols
         //         return false;
         //     }
         // }
-        public bool IsEqualByBase(int first, int second, Expression other = null)
-        {
-            if (other == null)
-            {
-                other = this;
-            }
-            Symbol firstSymbol = GetNode(first);
+        // public bool IsEqualByBase(Expression other)
+        // {
+        //     return IsEqualByBase(root, other.GetRoot());
+        // }
 
-            Symbol secondSymbol = other.GetNode(second);
-            
-            if (GetNode(first).GetValue() == other.GetNode(second).GetValue())
-            {
-                if (GetNode(first).IsExponent() && other.GetNode(second).IsExponent())
-                {
-                    if (!IsEqual(GetChild(first, 0), other.GetChild(second, 0))) // ignore the exponents
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        return true;
-                    }
-                }
-                else
-                {
-                    List<int> firstChildren = GetChildren(first);
+        /*
+        ===============
 
-                    List<int> secondChildren = other.GetChildren(second);
+            Copying
 
-                    if (firstChildren.Count != secondChildren.Count)
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        for (int i = 0; i < firstChildren.Count; i ++)
-                        {
-                            if (!IsEqual(firstChildren[i], secondChildren[i]))
-                            {
-                                return false;
-                            }
-                        }
-                        return true;
-                    }
-                }
-            }
-            else
-            {
-                return false;
-            }
-        }
-        public bool IsEqualByBase(Expression other)
-        {
-            return IsEqualByBase(root, other.GetRoot());
-        }
+        ===============
+        */
+
         public Expression CopyTree()
         {
             Expression copiedExpression = new Expression();
+
+            copiedExpression.tree = new Dictionary<int, Symbol>(tree);
 
             copiedExpression.parentMap = new Dictionary<int, int>(parentMap);
             
             copiedExpression.childMap = new Dictionary<int, List<int>>(childMap);
 
-            foreach (int node in tree.Keys)
-            {
-                Symbol copy = tree[node].Copy();
+            copiedExpression.reverseTree = new Dictionary<Symbol, int>(reverseTree);
 
-                int? parent = GetParent(node);
+            // foreach (int node in tree.Keys)
+            // {
+            //     Symbol copy = tree[node].Copy();
 
-                List<int> children = childMap[node];
+            //     int? parent = GetParent(node);
 
-                copiedExpression.AddToMap(copy, parent, children);
-            }
+            //     List<int> children = childMap[node];
+
+            //     copiedExpression.AddToMap(copy, parent, children);
+            // }
             return copiedExpression;
         }
         public Expression CopySubTree(int parent, int? copiedParent = null, Expression copiedExpression = null)
@@ -561,11 +670,11 @@ namespace LSharp.Symbols
         }
         public int GetCoefficient(int index)
         {
-            if (GetNode(index).IsMultiplication())
+            if (IsMultiplication(index))
             {
                 foreach (int child in GetChildren(index))
                 {
-                    if (GetNode(child).IsConstant())
+                    if (IsConstant(child))
                     {
                         if (GetNode(child).GetNumericValue() != null)
                         {
@@ -582,11 +691,11 @@ namespace LSharp.Symbols
         }
         public void SetCoefficient(int index, int coefficient)
         {
-            if (GetNode(index).IsMultiplication())
+            if (IsMultiplication(index))
             {
                 foreach (int child in GetChildren(index))
                 {
-                    if (GetNode(child).IsConstant())
+                    if (IsConstant(child))
                     {
                         GetNode(child).SetNumericValue(coefficient);
 
@@ -600,11 +709,11 @@ namespace LSharp.Symbols
         {
             List<int> terms = new List<int>();
 
-            if (GetNode(index).IsMultiplication())
+            if (IsMultiplication(index))
             {
                 foreach (int child in GetChildren(index))
                 {
-                    if (!GetNode(child).IsConstant())
+                    if (!IsConstant(child))
                     {
                         terms.Add(child);
                     }
@@ -616,26 +725,66 @@ namespace LSharp.Symbols
                 return null;
             }
         }
+        public bool Compare(ComparisonInstruction instruction, Expression other = null, int? first = null, int? second = null)
+        {
+            if (instruction == ComparisonInstruction.IsEqual)
+            {
+                comparisonStrategy = new IsEqualStrategy(CopyTree(), other, first, second);
+            }
+            else if (instruction == ComparisonInstruction.IsEqualByBase)
+            {
+                comparisonStrategy = new IsEqualByBaseStrategy(CopyTree(), other, first, second);
+            }
+            else
+            {
+                throw new Exception("Instruction not recognised");
+            }
+            return comparisonStrategy.Compare();
+        }
+        public Expression Evaluate(EvaluationInstruction instruction)
+        {
+            if (instruction == EvaluationInstruction.EvaluateConstants)
+            {
+                evaluationStrategy = new ConstantEvaluationStrategy(CopyTree());
+            }
+            else
+            {
+                throw new Exception("Instruction not recognised");
+            }
+            Expression result = evaluationStrategy.Evaluate();
+
+            return result;
+        }
         public Expression Manipulate(ManipulationInstruction instruction)
         {
             if (instruction == ManipulationInstruction.SumLikeTerms)
             {
-                manipulationStrategy = new SumLikeTermManipulation();
+                manipulationStrategy = new LikeTermStrategy(CopyTree());
             }
             else if (instruction == ManipulationInstruction.Distribute)
             {
-                manipulationStrategy = new DistributeManipulation();
+                manipulationStrategy = new DistributionStrategy(CopyTree());
             }
             else if (instruction == ManipulationInstruction.Cancel)
             {
-                manipulationStrategy = new CancelManipulation();
+                manipulationStrategy = new CancellationStrategy(CopyTree());
             }
             else
             {
-                return null;
+                throw new Exception("Instruction not recognised");
             }
-            return manipulationStrategy.Manipulate(CopyTree());
+            Expression result = manipulationStrategy.Manipulate();
+
+            return result;
         }
+
+        /*
+        ================
+
+            Printers
+
+        ================    
+        */
 
         public string ToString(int index)
         {
@@ -643,7 +792,7 @@ namespace LSharp.Symbols
 
             int? parent = GetParent(index);
 
-            if (symbol.IsAtomic())
+            if (IsAtomic(index))
             {
                 return symbol.ToString();
             }

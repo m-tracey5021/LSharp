@@ -2,25 +2,31 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LSharp.Symbols;
+using LSharp.Comparison;
 
-namespace LSharp.Manipulation.DivisionStrategies
+namespace LSharp.Manipulation.DivisionManipulation
 {
-    public class CancelManipulation : IManipulationStrategy
-    {
-        public List<Expression> exponents { get ; set; } = new List<Expression>();
-        public Expression Manipulate(Expression expression)
+    public class CancellationStrategy : IManipulationStrategy
+    {   
+        public Expression expression { get; set; }
+        public List<Expression> exponents { get ; set; }
+        public CancellationStrategy(Expression expression)
         {
-            Expression result = expression.CopyTree();
+            this.expression = expression;
 
-            ChainManipulation(result, result.GetRoot());
+            this.exponents = new List<Expression>();
+        }
+        public Expression Manipulate()
+        {
+            ChainManipulation(expression.GetRoot());
 
-            return result;
+            return expression;
         } 
-        public void ChainManipulation(Expression expression, int index)
+        public void ChainManipulation(int index)
         {
             foreach (int child in expression.GetChildren(index))
             {
-                ChainManipulation(expression, child);
+                ChainManipulation(child);
             }
             ManipulationResult manipulation = Cancel(expression, index);
 
@@ -31,7 +37,7 @@ namespace LSharp.Manipulation.DivisionStrategies
         }  
         public void AddToExponents(Expression expression, int i, int j)
         {
-            if (expression.GetNode(i).IsExponent() && expression.GetNode(j).IsExponent())
+            if (expression.IsExponent(i) && expression.IsExponent(j))
             {
                 Expression sub = expression.CopySubTree(expression.GetChild(i, 1)).Subtract(expression.CopySubTree(expression.GetChild(j, 1)));
 
@@ -50,7 +56,7 @@ namespace LSharp.Manipulation.DivisionStrategies
         {
             // factor first
 
-            if (expression.GetNode(index).IsDivision())
+            if (expression.IsDivision(index))
             {
                 int num = expression.GetChild(index, 0);
 
@@ -60,19 +66,19 @@ namespace LSharp.Manipulation.DivisionStrategies
 
                 List<int> cancelledDenoms;
 
-                if (expression.GetNode(num).IsMultiplication() && expression.GetNode(denom).IsMultiplication())
+                if (expression.IsMultiplication(num) && expression.IsMultiplication(denom))
                 {
                     cancelledNums = new List<int>(expression.GetChildren(num));
 
                     cancelledDenoms = new List<int>(expression.GetChildren(denom));
                 }
-                else if (!expression.GetNode(num).IsMultiplication() && expression.GetNode(denom).IsMultiplication())
+                else if (!expression.IsMultiplication(num) && expression.IsMultiplication(denom))
                 {
                     cancelledNums = new List<int>(){ num };
 
                     cancelledDenoms = new List<int>(expression.GetChildren(denom));
                 }
-                else if (expression.GetNode(num).IsMultiplication() && !expression.GetNode(denom).IsMultiplication())
+                else if (expression.IsMultiplication(num) && !expression.IsMultiplication(denom))
                 {
                     cancelledNums = new List<int>(expression.GetChildren(num));
 
@@ -88,7 +94,7 @@ namespace LSharp.Manipulation.DivisionStrategies
 
                     for (int j = 0; j < cancelledDenoms.Count; j ++)
                     {
-                        if (expression.IsEqual(cancelledNums[i], cancelledDenoms[j]) || expression.IsEqualByBase(cancelledNums[i], cancelledDenoms[j]))
+                        if (expression.Compare(ComparisonInstruction.IsEqualByBase, first: cancelledNums[i], second: cancelledDenoms[j]))
                         {
                             AddToExponents(expression, cancelledNums[i], cancelledDenoms[j]);
 

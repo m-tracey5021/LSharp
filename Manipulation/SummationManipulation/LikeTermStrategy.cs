@@ -1,39 +1,45 @@
 using System;
 using System.Collections.Generic;
 using LSharp.Symbols;
+using LSharp.Comparison;
 
-namespace LSharp.Manipulation.SummationStrategies
+namespace LSharp.Manipulation.SummationManipulation
 {
-    public class SumLikeTermManipulation : IManipulationStrategy
+    public class LikeTermStrategy : IManipulationStrategy
     {
-        public Expression Manipulate(Expression expression)
+        public Expression expression { get; set; }
+        public LikeTermStrategy(Expression expression)
         {
-            ChainManipulation(expression, expression.GetRoot());
+            this.expression = expression;
+        }
+        public Expression Manipulate()
+        {
+            ChainManipulation(expression.GetRoot());
 
             return expression;
         } 
-        public void ChainManipulation(Expression expression, int index)
+        public void ChainManipulation(int index)
         {
             List<int> children = expression.GetChildren(index);
 
             for (int i = 0; i < children.Count; i ++)
             {
-                ChainManipulation(expression, children[i]);
+                ChainManipulation(children[i]);
             }
-            ManipulationResult manipulation = SumLikeTerms(expression, index);
+            ManipulationResult manipulation = SumLikeTerms(index);
 
             if (manipulation.change)
             {
                 expression.ReplaceNode(index, manipulation.result);
             }
         }  
-        public ManipulationResult SumLikeTerms(Expression expression, int index)
+        public ManipulationResult SumLikeTerms(int index)
         {
             Expression result = new Expression();
 
             List<Expression> terms = new List<Expression>();
 
-            if (expression.GetNode(index).IsSummation())
+            if (expression.IsSummation(index))
             {
                 List<int> children = expression.GetChildren(index);
 
@@ -55,7 +61,7 @@ namespace LSharp.Manipulation.SummationStrategies
                         {
                             if (!visited.Contains(j))
                             {
-                                if (IsLikeTerm(expression, compared, children[j]))
+                                if (IsLikeTerm(compared, children[j]))
                                 {
                                     visited.Add(j);
 
@@ -94,9 +100,9 @@ namespace LSharp.Manipulation.SummationStrategies
                 return new ManipulationResult(){ result = expression, change = false };
             }
         }
-        public bool IsLikeTerm(Expression expression, int first, int second)
+        public bool IsLikeTerm(int first, int second)
         {
-            if (expression.GetNode(first).IsMultiplication() && expression.GetNode(second).IsMultiplication())
+            if (expression.IsMultiplication(first) && expression.IsMultiplication(second))
             {
                 List<int> firstTerms = expression.GetTerms(first);
 
@@ -110,7 +116,8 @@ namespace LSharp.Manipulation.SummationStrategies
                 {
                     for (int i = 0; i < firstTerms.Count; i ++)
                     {
-                        if (!expression.IsEqual(firstTerms[i], secondTerms[i]))
+                        // if (!expression.IsEqual(firstTerms[i], secondTerms[i]))
+                        if (!expression.Compare(ComparisonInstruction.IsEqual, first: firstTerms[i], second: secondTerms[i]))
                         {
                             return false;
                         }

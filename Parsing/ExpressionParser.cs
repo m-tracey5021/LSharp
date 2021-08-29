@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using LSharp.Symbols;
+using LSharp.Math.Symbols;
 
 namespace LSharp.Parsing
 {
